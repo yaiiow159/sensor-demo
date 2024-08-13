@@ -5,7 +5,6 @@ import com.example.aquarkdemo.dto.*;
 import com.example.aquarkdemo.entity.SensorData;
 import com.example.aquarkdemo.exception.CaculateException;
 import com.example.aquarkdemo.mq.MessageProducer;
-import com.example.aquarkdemo.queryType.QueryTypeEnum;
 import com.example.aquarkdemo.repository.SensorDataRepository;
 import com.example.aquarkdemo.result.ApiResult;
 import com.example.aquarkdemo.service.HttpRequestService;
@@ -22,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +29,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.example.aquarkdemo.constant.CommonConstant.*;
 
@@ -54,7 +55,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         ApiResult<List<SensorData>> apiResult = httpRequestService.callApi();
 
         // STEP2 將資料存入DB
-        if (apiResult != null && apiResult.isSuccess() && apiResult.getData() != null) {
+        if (apiResult != null && apiResult.isSuccess() && apiResult.getData() != Collections.EMPTY_LIST) {
             List<SensorData> sensorDataList = apiResult.getData();
             if (!CollectionUtils.isEmpty(sensorDataList)) messageProducer.sendSensorData(sensorDataList);
         } else {
@@ -87,12 +88,18 @@ public class SensorDataServiceImpl implements SensorDataService {
         PeakOffPeakAverageDTO offPeakAverageDTO = new PeakOffPeakAverageDTO();
 
         // 驗證是否是週五 周五尖峰值段為全天
-        if (PeakOffPeakTimeChecker.isCaculatePeekFullDay(now)) {
+        if (PeakOffPeakTimeChecker.isCalculatePeakFullDay(now)) {
             peekStartTime = LocalDate.now(ZoneId.of("Asia/Taipei")).minusDays(1).atStartOfDay();
             peekEndTime = LocalDate.now(ZoneId.of("Asia/Taipei")).minusDays(1).atTime(LocalTime.MAX);
 
             peakSumDTO = sensorDataRepository.findPeekSumByTimeRange(peekStartTime, peekEndTime);
             peakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(peekStartTime, peekEndTime);
+        } else if (PeakOffPeakTimeChecker.isCalculateOffPeakFullDay(now)) {
+            offPeakStartTime = LocalDate.now(ZoneId.of("Asia/Taipei")).minusDays(1).atStartOfDay();
+            offPeakEndTime = LocalDate.now(ZoneId.of("Asia/Taipei")).minusDays(1).atTime(LocalTime.MAX);
+
+            offPeakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(offPeakStartTime, offPeakEndTime);
+            offPeakSumDTO = sensorDataRepository.findPeekSumByTimeRange(offPeakStartTime, offPeakEndTime);
         } else {
             peekStartTime = LocalDateTime.now(ZoneId.of("Asia/Taipei")).minusDays(1).withHour(7).withMinute(30).withSecond(0);
             peekEndTime = LocalDateTime.now(ZoneId.of("Asia/Taipei")).minusDays(1).withHour(17).withMinute(30).withSecond(0);
@@ -204,11 +211,27 @@ public class SensorDataServiceImpl implements SensorDataService {
         // 轉換 字串時間 為 LocalDateTime
         log.debug("queryData: queryType={}, fields={}, startTime={}, endTime={}", queryType, field, startTime, endTime);
 
+        // 避免前端limit 為null
+        if (limit == null || limit == 0) {
+            limit = 10;
+        }
+
         LocalDate start = LocalDate.parse(startTime);
         LocalDate end = LocalDate.parse(endTime);
         // 確保時區正確
         start = start.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDate();
         end = end.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDate();
+
+        // 先嘗試從redis cache獲取資料
+        String jsonStr = redisCacheClient.get(REDIS_QUERY_KEY_PREFIX + queryType + "_" + selectType + "_" + field + "_" + start + "_" + end);
+        if(StringUtils.hasText(jsonStr)) {
+            try {
+                log.debug("從redis cache獲取數據: {}", jsonStr);
+                return JsonUtil.deserialize(jsonStr, new TypeReference<List<SensorDataDTO>>(){});
+            } catch (JsonProcessingException e) {
+                log.error("從redis cache獲取數據時發生異常 {}", e.getMessage());
+            }
+        }
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<SensorDataDTO> query = cb.createQuery(SensorDataDTO.class);
@@ -310,8 +333,12 @@ public class SensorDataServiceImpl implements SensorDataService {
         query.where(predicates.toArray(new Predicate[0]));
         query.orderBy(cb.desc(root.get("obsTime")));
         try {
-            return entityManager.createQuery(query).setMaxResults(limit).getResultList();
-        } catch (NoResultException e) {
+            final String redisKey = REDIS_QUERY_KEY_PREFIX + queryType + "_" + selectType + "_" + field + "_" + start + "_" + end;
+            // 先存取資料 如果之後一樣的數據從redis 獲取
+            List<SensorDataDTO> resultList = entityManager.createQuery(query).setMaxResults(limit).getResultList();
+            redisCacheClient.set(redisKey, resultList,60L, TimeUnit.SECONDS);
+            return resultList;
+        } catch (NoResultException | JsonProcessingException e) {
             return Collections.emptyList();
         }
     }
@@ -356,14 +383,14 @@ public class SensorDataServiceImpl implements SensorDataService {
             if (dailyAverageDTO == null) {
                 dailyAverageDTO = sensorDataRepository.findDailyAverages(startTime, endTime);
             }
-            if (hourlySumDTO == null) {
+            if (hourlySumDTO == null || CollectionUtils.isEmpty(hourlySumDTO)) {
                 hourlySumDTO = sensorDataRepository.findHourlySums(startTime, endTime);
             }
-            if (hourlyAverageDTO == null) {
+            if (hourlyAverageDTO == null || CollectionUtils.isEmpty(hourlyAverageDTO)) {
                 hourlyAverageDTO = sensorDataRepository.findHourlyAverages(startTime, endTime);
             }
             // 驗證這天是禮拜幾 還有 時間段
-            if (PeakOffPeakTimeChecker.isCaculatePeekFullDay(startTime)) {
+            if (PeakOffPeakTimeChecker.isCalculatePeakFullDay(startTime)) {
                 // 全天的尖峰時段
                 if (peakSumDTO == null) {
                     peakSumDTO = sensorDataRepository.findPeekSumByTimeRange(startTime, endTime);
@@ -371,7 +398,7 @@ public class SensorDataServiceImpl implements SensorDataService {
                 if (peakAverageDTO == null) {
                     peakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(startTime, endTime);
                 }
-            } else if (PeakOffPeakTimeChecker.isCaculateOffPeekFullDay(startTime)) {
+            } else if (PeakOffPeakTimeChecker.isCalculateOffPeakFullDay(startTime)) {
                 if(offPeakAverageDTO == null) {
                     offPeakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(startTime,endTime);
                 }

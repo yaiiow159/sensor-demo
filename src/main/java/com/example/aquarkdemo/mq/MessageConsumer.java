@@ -70,7 +70,7 @@ public class MessageConsumer {
             } else {
                 saveSensorData(sensorDataList);
             }
-            // 手動確認ack message是否已正確執行完成
+            // 手動確認ack message是否已正確執行完成 完成offset commit
             ack.acknowledge();
         } catch (JsonProcessingException e) {
             log.error("反序列化時發生異常: {}", e.getMessage());
@@ -117,10 +117,10 @@ public class MessageConsumer {
         log.debug("收到 sensor data: {}, 主題: {}, 分區: {}, 當前時間: {}",
                 record.value(), record.topic(), record.partition(), LocalDateTime.now(ZoneId.of("Asia/Taipei")));
         // 寄送死信對列異常通知
-        String message = "寄送死信對列異常通知、多次將感應器存入db發生異常、發送此郵件告知" + "訊息內容為:" + record.value();
-        String subject = "寄送死信對列異常通知";
+        final String message = "寄送死信對列異常通知、多次將感應器存入db發生異常、發送此郵件告知系統管理員";
+        final String subject = "寄送死信對列異常通知";
         sendAlertMail(message,subject);
-        // 手動確認ack message是否已正確執行完成
+        // 手動確認ack message是否已正確執行完成 完成offset commit
         ack.acknowledge();
     }
 

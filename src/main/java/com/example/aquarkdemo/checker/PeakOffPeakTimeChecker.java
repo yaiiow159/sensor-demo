@@ -21,18 +21,25 @@ public class PeakOffPeakTimeChecker {
         DayOfWeek dayOfWeek = dateTime.getDayOfWeek();
         LocalTime time = dateTime.toLocalTime();
 
-        // 尖峰时间: 週一～週三 : 7:30 ~17:30。週四 週五 全天
         boolean isPeakTime = (
                 (dayOfWeek == DayOfWeek.MONDAY || dayOfWeek == DayOfWeek.TUESDAY || dayOfWeek == DayOfWeek.WEDNESDAY) &&
-                        (time.isAfter(LocalTime.of(7, 30)) && time.isBefore(LocalTime.of(17, 31)))
+                        time.isAfter(LocalTime.of(7, 29)) && time.isBefore(LocalTime.of(17, 31))
         ) ||
                 (dayOfWeek == DayOfWeek.THURSDAY || dayOfWeek == DayOfWeek.FRIDAY);
 
-        // 離峰时间: 週一～週三 : 00:00 ~7:30 以及 17:30~00:00。週六 週日 全天
-        boolean isOffPeakTime = !isPeakTime ||
+        boolean isOffPeakTime = (
+                (dayOfWeek == DayOfWeek.MONDAY || dayOfWeek == DayOfWeek.TUESDAY || dayOfWeek == DayOfWeek.WEDNESDAY) &&
+                        (time.isBefore(LocalTime.of(7, 30)) || time.isAfter(LocalTime.of(17, 30)))
+        ) ||
                 (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY);
 
-        return isPeakTime ? TimePeriod.PEAK : TimePeriod.OFF_PEAK;
+        if (isPeakTime) {
+            return TimePeriod.PEAK;
+        } else if (isOffPeakTime) {
+            return TimePeriod.OFF_PEAK;
+        } else {
+            return null;
+        }
     }
 
     public static boolean isPeakTime(LocalDateTime dateTime) {
@@ -43,15 +50,13 @@ public class PeakOffPeakTimeChecker {
         return checkPeakOffPeakPeriod(dateTime) == TimePeriod.OFF_PEAK;
     }
 
-    //是否是週五或是週四
-    public static boolean isCaculatePeekFullDay(LocalDateTime dateTime) {
-        return dateTime.getDayOfWeek() == DayOfWeek.FRIDAY || dateTime.getDayOfWeek() == DayOfWeek.THURSDAY;
+    // 是否是週四或週五的全天
+    public static boolean isCalculatePeakFullDay(LocalDateTime dateTime) {
+        return dateTime.getDayOfWeek() == DayOfWeek.THURSDAY || dateTime.getDayOfWeek() == DayOfWeek.FRIDAY;
     }
 
-
-    public static boolean isCaculateOffPeekFullDay(LocalDateTime dateTime) {
+    // 是否是週六或週日的全天
+    public static boolean isCalculateOffPeakFullDay(LocalDateTime dateTime) {
         return dateTime.getDayOfWeek() == DayOfWeek.SATURDAY || dateTime.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
-
-
 }

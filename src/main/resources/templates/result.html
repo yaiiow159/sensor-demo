@@ -8,7 +8,12 @@
 <body>
 <div class="container">
     <h1>結果資料</h1>
-    <div th:include="tableFragment :: sensorDataTable"></div>
+    <div th:include="header :: header"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <div th:include="tableFragment :: sensorDataTable"></div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

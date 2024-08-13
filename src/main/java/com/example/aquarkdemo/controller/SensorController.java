@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * 感應器API控制器
  */
-@Tag(name = "Sensor", description = "Sensor API")
+@Tag(name = "感應器相關API功能", description = "Sensor API")
 @Controller
 @RequestMapping("/api/v1/sensor")
 @RequiredArgsConstructor
@@ -56,7 +56,7 @@ public class SensorController {
         return "result";
     }
 
-    @GetMapping("/dashboard/data")
+    @GetMapping(value = "/dashboard/data",produces = "application/json;charset=UTF-8")
     @Operation(summary = "取得儀錶板數據", description = "取得儀錶板相關數據", tags = "Sensor")
     @ResponseBody
     public Map<String, Object> getDashboardData(@Parameter(description = "日期", example = "2024-08-12", required = true)

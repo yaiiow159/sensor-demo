@@ -29,6 +29,8 @@ public class CommonConstant {
     public static final String REDIS_HOURLY_SUM_KEY = "hourly_sum";
     public static final String REDIS_DAILY_AVERAGE_KEY = "daily_average";
 
+    public static final String REDIS_QUERY_KEY_PREFIX = "sensor_data_";
+
     // 感應器欄位
     public static final String SENSOR_FIELD_NAME_V1 = "v1";
     public static final String SENSOR_FIELD_NAME_V5 = "v5";

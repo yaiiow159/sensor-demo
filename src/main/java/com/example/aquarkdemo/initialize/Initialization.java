@@ -24,10 +24,10 @@ public class Initialization {
 
     @PostConstruct
     void init() {
-        log.info("初始化 SensorData 數據 開始....");
+        log.info("初始化數據 開始....");
         initialDataBase();
         checkAlertValue();
-        log.info("初始化 SensorData 數據 完成....");
+        log.info("初始化數據 完成....");
     }
 
     private void checkAlertValue() {
@@ -52,6 +52,7 @@ public class Initialization {
         if(alertProps.getAlertRain_d() == null) {
             alertProps.setAlertRain_d(DEFAULT_ALERT_VALUE);
         }
+        log.info("初始化 Alert 數據 完成....");
     }
 
     // 初始化資料
@@ -60,5 +61,6 @@ public class Initialization {
             log.info("刪除 SensorData 數據....");
             sensorDataRepository.deleteAll();
         }
+        log.info("初始化 SensorData 數據....");
     }
 }
