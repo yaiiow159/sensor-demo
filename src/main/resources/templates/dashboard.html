@@ -1,10 +1,218 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>$Title$</title>
+  <title>儀表板</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <style>
+    .container-fluid {
+      padding-left: 0 !important;
+    }
+  </style>
 </head>
 <body>
-$END$
+<div th:insert="header :: header"></div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-3">
+      <div th:insert="sidebar :: sidebar"></div>
+    </div>
+    <div class="col-8 pt-5">
+      <h1>儀表板</h1>
+      <div>
+        <label for="date" class="form-label">查詢日期</label>
+        <input type="date" class="form-control" id="date" name="date">
+        <button type="button" class="btn btn-primary mb-3 mt-3" onclick="getDataAndUpdateCharts()">
+          查詢
+        </button>
+      </div>
+
+      <canvas id="dailyAverageChart" width="400" height="200"></canvas>
+      <canvas id="hourlySumChart" width="400" height="200"></canvas>
+      <canvas id="hourlyAvgChart" width="400" height="200"></canvas>
+      <canvas id="peakOffPeakAvgChart" width="400" height="200"></canvas>
+      <canvas id="peakOffPeakSumChart" width="400" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  // 日均值圖表
+  let ctxDailyAvg = document.getElementById('dailyAverageChart').getContext('2d');
+  let dailyAverageChart = new Chart(ctxDailyAvg, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: '日均值',
+        data: [],
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    }
+  });
+
+  // 每小時加總圖表
+  let ctxHourlySum = document.getElementById('hourlySumChart').getContext('2d');
+  let hourlySumChart = new Chart(ctxHourlySum, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: '每小時加總',
+        data: [],
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+      }]
+    }
+  });
+
+  // 每小時平均圖表
+  let ctxHourlyAvg = document.getElementById('hourlyAvgChart').getContext('2d');
+  let hourlySumChart = new Chart(ctxHourlyAvg, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: '每小時平均',
+        data: [],
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+      }]
+    }
+  });
+
+  // 尖峰與離峰時間平均圖表
+  let ctxPeakOffPeak = document.getElementById('peakOffPeakAvgChart').getContext('2d');
+  let peakOffPeakAvgChart = new Chart(ctxPeakOffPeak, {
+    type: 'doughnut',
+    data: {
+      labels: ['尖峰時段平均', '離峰時段平均'],
+      datasets: [{
+        label: '尖峰與離峰時段數據',
+        data: [],
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)'
+        ],
+        borderWidth: 1
+      }]
+    }
+  });
+
+  // 尖峰與離峰時間加總圖表
+  let ctxPeakOffPeakSum = document.getElementById('peakOffPeakSumChart').getContext('2d');
+  let peakOffPeakSumChart = new Chart(ctxPeakOffPeakSum, {
+    type: 'bar',
+    data: {
+      labels: ['尖峰時段加總', '離峰時段加總'],
+      datasets: [{
+        label: '尖峰與離峰時段加總數據',
+        data: [],
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(255, 159, 64, 0.2)'
+        ],
+        borderColor: [
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 159, 64, 1)'
+        ],
+        borderWidth: 1
+      }]
+    }
+  });
+
+  // 透過AJAX請求獲取數據並更新圖表
+  function getDataAndUpdateCharts() {
+
+    let dateTime = $('#date').val();
+    // 確保為ISO 8601格式
+
+    $.ajax({
+      url: '/api/v1/sensor/dashboard/data',
+      type: 'GET',
+      data: { date: dateTime },
+      success: function(result) {
+        // 更新日總和圖表
+        let dailySum = result.dailySumDTO;
+        dailyAverageChart.data.labels = ['V1', 'V5', 'V6', 'RH', 'TX', 'Echo', 'Rain_d', 'Speed'];
+        dailyAverageChart.data.datasets[0].data = [dailySum.v1, dailySum.v5, dailySum.v6, dailySum.rh, dailySum.tx, dailySum.echo, dailySum.rain_d, dailySum.speed];
+        dailyAverageChart.update();
+
+        // 更新日平均圖表
+        let dailyAvg = result.dailyAverageDTO;
+        hourlySumChart.data.labels = ['V1', 'V5', 'V6', 'RH', 'TX', 'Echo', 'Rain_d', 'Speed'];
+        hourlySumChart.data.datasets[0].data = [dailyAvg.v1, dailyAvg.v5, dailyAvg.v6, dailyAvg.rh, dailyAvg.tx, dailyAvg.echo, dailyAvg.rain_d, dailyAvg.speed];
+        hourlySumChart.update();
+
+        // 更新每小時總和圖表
+        let hourlySum = result.hourlySumDTO;
+        let peakOffPeakAvgChartData = [];
+        for (let i = 0; i < hourlySum.size(); i++) {
+          peakOffPeakAvgChartData.push(hourlySum.get(i));
+        }
+        peakOffPeakAvgChart.data.datasets[0].data = peakOffPeakAvgChartData;
+        peakOffPeakAvgChart.update();
+
+        // 更新每小時平均圖表
+        let hourlyAvg = result.hourlyAverageDTO;
+        let peakOffPeakSumChartData = [];
+        for (let i = 0; i < hourlyAvg.size(); i++) {
+          peakOffPeakSumChartData.push(hourlyAvg.get(i));
+        }
+        peakOffPeakSumChart.data.datasets[0].data = peakOffPeakSumChartData;
+        peakOffPeakSumChart.update();
+
+        // 尖峰時段數據
+        let peakSum = result.peakSumDTO;
+        let peakAvg = result.peakAverageDTO;
+        let offPeakSum = result.offPeakSumDTO;
+        let offPeakAvg = result.offPeakAverageDTO;
+
+        peakOffPeakAvgChart.data.datasets[0].data = [peakAvg.v1, offPeakAvg.v1];
+        peakOffPeakAvgChart.data.datasets[1].data = [peakAvg.v5, offPeakAvg.v5];
+        peakOffPeakAvgChart.data.datasets[2].data = [peakAvg.v6, offPeakAvg.v6];
+        peakOffPeakAvgChart.data.datasets[3].data = [peakAvg.rh, offPeakAvg.rh];
+        peakOffPeakAvgChart.data.datasets[4].data = [peakAvg.tx, offPeakAvg.tx];
+        peakOffPeakAvgChart.data.datasets[5].data = [peakAvg.echo, offPeakAvg.echo];
+        peakOffPeakAvgChart.data.datasets[6].data = [peakAvg.rain_d, offPeakAvg.rain_d];
+        peakOffPeakAvgChart.data.datasets[7].data = [peakAvg.speed, offPeakAvg.speed];
+        peakOffPeakAvgChart.update();
+
+        peakOffPeakSumChart.data.datasets[0].data = [peakSum.v1, offPeakSum.v1];
+        peakOffPeakSumChart.data.datasets[1].data = [peakSum.v5, offPeakSum.v5];
+        peakOffPeakSumChart.data.datasets[2].data = [peakSum.v6, offPeakSum.v6];
+        peakOffPeakSumChart.data.datasets[3].data = [peakSum.rh, offPeakSum.rh];
+        peakOffPeakSumChart.data.datasets[4].data = [peakSum.tx, offPeakSum.tx];
+        peakOffPeakSumChart.data.datasets[5].data = [peakSum.echo, offPeakSum.echo];
+        peakOffPeakSumChart.data.datasets[6].data = [peakSum.rain_d, offPeakSum.rain_d];
+        peakOffPeakSumChart.data.datasets[7].data = [peakSum.speed, offPeakSum.speed];
+        peakOffPeakSumChart.update();
+      }
+    });
+  }
+
+  $(document).ready(function() {
+    // 获取当天日期
+    const today = new Date().toISOString().split('T')[0];
+    $('#date').val(today);
+
+    // 加载当天的数据
+    getDataAndUpdateCharts();
+  });
+
+</script>
 </body>
 </html>
+

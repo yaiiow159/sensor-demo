@@ -1,10 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+<aside th:fragment="sidebar">
+    <div class="d-flex flex-column flex-shrink-0 bg-dark p-3 text-white shadow-lg" style="width: 280px; height: 100vh; position: fixed;">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <i class="fas fa-tachometer-alt me-2"></i>
+            <span class="fs-4">選單</span>
+        </a>
+        <hr class="border-light">
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a th:href="@{/api/v1/sensor/dashboard}" class="nav-link text-white">
+                    <i class="fas fa-chart-pie me-2"></i> 儀錶板
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/api/v1/sensor/}" class="nav-link text-white">
+                    <i class="fas fa-database me-2"></i> 資料查詢
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-white">
+                    <i class="fas fa-file-alt me-2"></i> 報告
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-white">
+                    <i class="fas fa-cogs me-2"></i> 設定
+                </a>
+            </li>
+        </ul>
+        <hr class="border-light">
+    </div>
+</aside>
+
+

@@ -1,0 +1,20 @@
+groups:
+  - name: cpu_jvm_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[1m]) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "高CPU使用率"
+          description: "CPU使用率高於80% 且持續2分鐘以上"
+
+      - alert: HighJVMMemoryUsage
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.9
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "JVM 堆記體使用率過高"
+          description: "JVM 堆記體使用率過高，使用率大於 90%，持續 2 分鐘以上"

@@ -1,0 +1,14 @@
+global:
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_from: 'alertmanager@examxple.com'
+  smtp_auth_username: 'examyou076@example.com'
+  smtp_auth_password: 'xpzq adqd ifc fhgz'
+
+route:
+  group_by: ['alertname']
+  receiver: 'email-notifications'
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'examyou076@example.com'

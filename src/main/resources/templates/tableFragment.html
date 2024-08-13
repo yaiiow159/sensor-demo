@@ -1,10 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>$Title$</title>
+  <title>資料表格</title>
 </head>
 <body>
-$END$
+<div th:fragment="sensorDataTable">
+  <table class="table table-header table-hover">
+    <thead>
+    <tr>
+      <th>時間</th>
+      <th>時刻</th>
+      <th>鋰電池電壓 (V1)</th>
+      <th>太陽能板1電壓 (V5)</th>
+      <th>太陽能板2電壓 (V6)</th>
+      <th>雨量 (Rain_D)</th>
+      <th>濕度 (RH)</th>
+      <th>溫度 (TX)</th>
+      <th>水位空高 (Echo)</th>
+      <th>表面流速 (Speed)</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="data : ${sensorDataDTOList}">
+      <td th:text="${data.obsTime}"></td>
+      <td th:text="${data.hour}"></td>
+      <td th:text="${data.v1}"></td>
+      <td th:text="${data.v5}"></td>
+      <td th:text="${data.v6}"></td>
+      <td th:text="${data.rainD}"></td>
+      <td th:text="${data.rh}"></td>
+      <td th:text="${data.tx}"></td>
+      <td th:text="${data.echo}"></td>
+      <td th:text="${data.speed}"></td>
+    </tr>
+    </tbody>
+  </table>
+</div>
 </body>
 </html>

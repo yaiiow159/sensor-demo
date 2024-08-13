@@ -1,2 +1,84 @@
-package com.example.aquarkdemo.util;public class JsonUtil {
+package com.example.aquarkdemo.util;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Json 工具類
+ */
+@Slf4j
+@RequiredArgsConstructor
+public class JsonUtil {
+
+    private static ObjectMapper instance = getInstance();
+
+    // 取得單例物件
+    public static synchronized ObjectMapper getInstance() {
+        if (instance == null) {
+            instance = getObjectMapperInstance();
+        }
+        return instance;
+    }
+
+
+    /**
+     * 序列化成 json
+     * @param obj 序列化的物件
+     * @return json
+     * @throws JsonProcessingException
+     */
+    public static String serialize(final Object obj) throws JsonProcessingException {
+        return instance.writeValueAsString(obj);
+    }
+
+    /**
+     * 反序列化
+     * @param json json
+     * @param clazz 反序列化後的物件類型
+     * @return 反序列化後的物件
+     * @throws JsonProcessingException
+     */
+    public static <T> T deserialize(final String json, final Class<T> clazz) throws JsonProcessingException {
+        if(json == null) {
+            return null;
+        }
+        return instance.readValue(json, clazz);
+    }
+
+    /**
+     * 反序列化
+     * @param json json
+     * @param typeReference 反序列化後的物件類型
+     * @return 反序列化後的物件
+     * @throws JsonProcessingException
+     */
+    public static <T> T deserialize(final String json, final TypeReference<T> typeReference) throws JsonProcessingException {
+        if(json == null) {
+            return null;
+        }
+        return instance.readValue(json, typeReference);
+    }
+
+    /**
+     * 取得 ObjectMapper 實例
+     * @return ObjectMapper
+     */
+    private static ObjectMapper getObjectMapperInstance() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        objectMapper.setDateFormat(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.registerModule(new Jdk8Module());
+        return objectMapper;
+    }
+
 }
