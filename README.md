@@ -3,6 +3,11 @@
 主要展示各感應器在各時間點上的數據
 
 ### 使用技術棧 
+#### JDK版本 17版以上 請確認本機上JDk 版本是否正確 
+> 確認本機環境變數是否配置正確jdk版本
+~~~
+java --version  
+~~~
 #### 後端 : springboot3
 #### 前端渲染: thymeleaf + html + css + ajax
 #### 消息對列: kafka + zookeeper (單node)
@@ -78,6 +83,12 @@ docker-compose stop
   ![前端頁面](https://github.com/user-attachments/assets/dd600cef-35e6-4bba-bb4e-4293cd9bb6d0)
 
 5. **STEP5** 測試各項功能是否正常
+   ![回傳數據](https://github.com/user-attachments/assets/f3cb75d5-64ac-45c1-a73a-446736152ebe)
+   ![儀錶板](https://github.com/user-attachments/assets/2287dadf-0eaa-41ad-8e84-17b37dc4df35)
+   ![測試數據](https://github.com/user-attachments/assets/7bd25eb1-0cbd-47f3-9aaf-f150e6f70490)
+
+   
+   
    
 
 
