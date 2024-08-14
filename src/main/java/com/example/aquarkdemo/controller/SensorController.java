@@ -43,12 +43,12 @@ public class SensorController {
 
     @PostMapping(value = "/query",produces = "application/x-www-form-urlencoded;charset=UTF-8")
     @Operation(summary = "取得數據", description = "按照前端選擇的條件來取相關數據", tags = "Sensor")
-    public String getData(@RequestParam("startDate") String startDate,
-                          @RequestParam("endDate") String endDate,
-                          @RequestParam("timePeriod") String timePeriod,
-                          @RequestParam("selectType") String selectType,
-                          @RequestParam("limit") Integer limit,
-                          @RequestParam("field") String field,Model model) {
+    public String getData(@Parameter(description = "日期", example = "2024-08-12", required = true) @RequestParam("startDate") String startDate,
+                          @Parameter(description = "日期", example = "2024-08-13", required = true) @RequestParam("endDate") String endDate,
+                          @Parameter(description = "時段", example = "peak/offPeak", required = true) @RequestParam("timePeriod") String timePeriod,
+                          @Parameter(description = "選擇類型", example = "sum/avg", required = true) @RequestParam("selectType") String selectType,
+                          @Parameter(description = "顯示筆數", example = "10", required = true) @RequestParam("limit") Integer limit,
+                          @Parameter(description = "欄位", example = "v1,v5", required = true) @RequestParam("field") String field,Model model) {
         List<SensorDataDTO> sensorDataDTOList =
                 sensorDataService.queryData(timePeriod, field, startDate, endDate, selectType, limit);
 
