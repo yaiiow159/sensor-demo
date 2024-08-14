@@ -25,7 +25,7 @@ public class AIChatController {
         return "ai-chat";
     }
 
-    @PostMapping(value = "/chat")
+    @PostMapping(value = "/chat",produces = "application/json;charset=UTF-8")
     @Operation(summary = "AI聊天", description = "根據前端請求訊息響應AI的訊息")
     @ResponseBody
     public String chat(@Parameter(description = "訊息", example = "你好", required = true) @RequestBody String message) {
