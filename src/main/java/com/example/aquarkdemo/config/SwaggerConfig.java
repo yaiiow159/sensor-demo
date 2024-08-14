@@ -26,6 +26,15 @@ public class SwaggerConfig {
     }
 
     @Bean
+    public GroupedOpenApi taskAPI() {
+        return GroupedOpenApi.builder()
+                .group("排程相關 API")
+                .pathsToMatch("/api/v1/schedule/**")
+                .packagesToScan("com.example.aquarkdemo.controller")
+                .build();
+    }
+
+    @Bean
     public OpenAPI customizeOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
