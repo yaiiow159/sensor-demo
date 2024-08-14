@@ -30,7 +30,6 @@
           查詢
         </button>
       </div>
-
       <canvas id="dailyAverageChart" width="400" height="200"></canvas>
       <canvas id="dailySumChart" width="400" height="200"></canvas>
       <canvas id="hourlySumChart" width="400" height="200"></canvas>
@@ -92,7 +91,7 @@
 
 
   // 日均值圖表
-  let dailyAverageChart = initializeChart(
+  const dailyAverageChart = initializeChart(
           document.getElementById('dailyAverageChart').getContext('2d'),
           'line',
           '日均值',
@@ -100,7 +99,7 @@
           'rgba(75, 192, 192, 1)'
   );
 
-  let dailySumChart = initializeChart(
+  const dailySumChart = initializeChart(
           document.getElementById('dailySumChart').getContext('2d'),
           'bar',
           '日總和',
@@ -109,17 +108,17 @@
   );
 
   // 每小時加總圖表
-  let hourlySumChart = initializeHourCharts(
+  const hourlySumChart = initializeHourCharts(
           document.getElementById('hourlySumChart').getContext('2d')
   );
 
   // 每小時平均圖表
-  let hourlyAvgChart = initializeHourCharts(
+  const hourlyAvgChart = initializeHourCharts(
           document.getElementById('hourlyAvgChart').getContext('2d')
   );
 
   // 尖峰與離峰時間平均圖表
-  let peakOffPeakAvgChart = initializeChart(
+  const peakOffPeakAvgChart = initializeChart(
           document.getElementById('peakOffPeakAvgChart').getContext('2d'),
           'doughnut',
           '尖峰與離峰時段數據',
@@ -128,7 +127,7 @@
   );
 
   // 尖峰與離峰時間加總圖表
-  let peakOffPeakSumChart = initializeChart(
+  const peakOffPeakSumChart = initializeChart(
           document.getElementById('peakOffPeakSumChart').getContext('2d'),
           'bar',
           '尖峰與離峰時段加總數據',
@@ -136,7 +135,7 @@
           ['rgba(75, 192, 192, 1)', 'rgba(255, 159, 64, 1)']
   );
 
-  let offPeakSumChart = initializeChart(
+  const offPeakSumChart = initializeChart(
           document.getElementById('offPeakSumChart').getContext('2d'),
           'bar',
           '離峰時段加總數據',
@@ -144,7 +143,7 @@
           ['rgba(75, 192, 192, 1)', 'rgba(255, 159, 64, 1)']
   );
 
-  let offPeakAvgChart = initializeChart(
+  const offPeakAvgChart = initializeChart(
           document.getElementById('offPeakAvgChart').getContext('2d'),
           'bar',
           '離峰時段數據',
