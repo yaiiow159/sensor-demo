@@ -3,6 +3,11 @@
 主要展示各感應器在各時間點上的數據
 
 ### 使用技術棧 
+#### JDK版本 17版以上 請確認本機上JDk 版本是否正確 
+> 確認本機環境變數是否配置正確jdk版本
+~~~
+java --version  
+~~~
 #### 後端 : springboot3
 #### 前端渲染: thymeleaf + html + css + ajax
 #### 消息對列: kafka + zookeeper (單node)
@@ -54,15 +59,21 @@ docker-compose stop
 
 <hr>
 
-4. **STEP4**: 在IDE執行項目 沒有區分profile所以執行執行即可
+4. **STEP4**: 在IDE執行項目 有區分dev跟test版本 可以自行在application.properties當中設置
+   ~~~
+   # 開發用
+   spring.profile.active=dev
+   
+   #測試用
+   spring.prifile.active=test 測試用
+   ~~~
   
   > **注意** 執行前確認各容器運行是否正常
 
 ![確認個容器運行正常](https://github.com/user-attachments/assets/ae89d273-f1c9-43bf-aa7b-819192fbdb32)
 
 
-- 輸入 <http://localhost:9090> 確認 promethueus運行正常 (可去Configuration配置查看配置是否正確)
-
+- 輸入 <http://localhost:9090>
   ![普羅米修斯](https://github.com/user-attachments/assets/b302b55a-0841-46c5-9098-47553e5ffecd)
 
 - 確認kafka 運行正常 與zookeeper連線正常 (kafka 需將broker以及各項狀態數據紀錄至zookeeper保存確保附載均衡以及一致性)
@@ -78,6 +89,12 @@ docker-compose stop
   ![前端頁面](https://github.com/user-attachments/assets/dd600cef-35e6-4bba-bb4e-4293cd9bb6d0)
 
 5. **STEP5** 測試各項功能是否正常
+   ![回傳數據](https://github.com/user-attachments/assets/f3cb75d5-64ac-45c1-a73a-446736152ebe)
+   ![儀錶板](https://github.com/user-attachments/assets/2287dadf-0eaa-41ad-8e84-17b37dc4df35)
+   ![測試數據](https://github.com/user-attachments/assets/7bd25eb1-0cbd-47f3-9aaf-f150e6f70490)
+
+   
+   
    
 
 
