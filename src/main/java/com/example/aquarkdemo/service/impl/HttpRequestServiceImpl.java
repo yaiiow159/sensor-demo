@@ -17,7 +17,9 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,11 +37,11 @@ public class HttpRequestServiceImpl implements HttpRequestService {
     }
 
     @Override
-    public ApiResult<List<SensorData>> callApi() {
+    public ApiResult<Map<Integer, List<SensorData>>> callApi() {
         List<String> apiCallList = apiCallProps.getApiCallList();
 
         if(CollectionUtils.isEmpty(apiCallList)) {
-            return ApiResult.error(Collections.EMPTY_LIST);
+            return ApiResult.error(Collections.EMPTY_MAP);
         }
 
         List<CompletableFuture<List<SensorData>>> futureList = apiCallList.stream()
@@ -68,21 +70,23 @@ public class HttpRequestServiceImpl implements HttpRequestService {
             CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).get(10, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException e) {
             log.error("執行異步處理時發生異常 {}", e.getMessage());
-            return ApiResult.error(Collections.EMPTY_LIST);
+            return ApiResult.error(Collections.EMPTY_MAP);
         } catch (TimeoutException e) {
             log.error("執行異步處理時超時 {}", e.getMessage());
-            return ApiResult.timeout(Collections.EMPTY_LIST);
+            return ApiResult.timeout(Collections.EMPTY_MAP);
         }
 
-        List<SensorData> sensorDataList = futureList.stream()
+        // 按照station_id 分組
+        Map<Integer, List<SensorData>> sensorDataMap = futureList.stream()
                 .flatMap(future -> future.join().stream())
-                .filter(sensorData -> !ObjectUtils.isEmpty(sensorData)).toList();
+                .filter(sensorData -> !ObjectUtils.isEmpty(sensorData))
+                .collect(Collectors.groupingBy(SensorData::getStationId));
 
         // 回傳結果集
-        if(ObjectUtils.isEmpty(sensorDataList)) {
-           return ApiResult.error(Collections.EMPTY_LIST);
+        if(ObjectUtils.isEmpty(sensorDataMap)) {
+           return ApiResult.error(Collections.EMPTY_MAP);
         }
 
-        return ApiResult.success(sensorDataList);
+        return ApiResult.success(sensorDataMap);
     }
 }

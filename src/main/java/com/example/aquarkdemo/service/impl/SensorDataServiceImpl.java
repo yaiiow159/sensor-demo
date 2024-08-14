@@ -52,12 +52,13 @@ public class SensorDataServiceImpl implements SensorDataService {
     @Override
     public void callApiAndSaveData() {
         // STEP1 呼叫API 取得資料
-        ApiResult<List<SensorData>> apiResult = httpRequestService.callApi();
-
+        ApiResult<Map<Integer, List<SensorData>>> apiResult = httpRequestService.callApi();
         // STEP2 將資料存入DB
-        if (apiResult != null && apiResult.isSuccess() && apiResult.getData() != Collections.EMPTY_LIST) {
-            List<SensorData> sensorDataList = apiResult.getData();
-            if (!CollectionUtils.isEmpty(sensorDataList)) messageProducer.sendSensorData(sensorDataList);
+        if (apiResult != null && apiResult.isSuccess() && apiResult.getData() != Collections.EMPTY_MAP) {
+           // 按照station_id 傳遞
+            for (Map.Entry<Integer, List<SensorData>> entry : apiResult.getData().entrySet()) {
+                 messageProducer.sendSensorData(entry.getValue());
+            }
         } else {
             assert apiResult != null;
             if (apiResult.isError() || apiResult.isFail() || apiResult.isTimeout()) {

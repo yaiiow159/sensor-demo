@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface HttpRequestService {
-    ApiResult<List<SensorData>> callApi();
+    ApiResult<Map<Integer, List<SensorData>>> callApi();
 }
