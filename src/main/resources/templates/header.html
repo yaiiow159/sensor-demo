@@ -1,7 +1,7 @@
 <header th:fragment="header">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm position-sticky">
         <div class="container-fluid">
-            <a class="navbar-brand p-3" href="#">
+            <a class="navbar-brand p-3" th:href="@{/api/v1/sensor/}">
                 感應器監控
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,8 +20,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-question-circle"></i> 幫助
+                        <a class="nav-link" th:href="@{/api/v1/ai/}">
+                            <i class="fas fa-question-circle"></i> AI小助手
                         </a>
                     </li>
                 </ul>
