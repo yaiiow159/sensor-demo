@@ -35,6 +35,15 @@ public class SwaggerConfig {
     }
 
     @Bean
+    public GroupedOpenApi aiAPI() {
+        return GroupedOpenApi.builder()
+                .group("AI相關 API")
+                .pathsToMatch("/api/v1/ai/**")
+                .packagesToScan("com.example.aquarkdemo.controller")
+                .build();
+    }
+
+    @Bean
     public OpenAPI customizeOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
