@@ -8,19 +8,20 @@
 ~~~
 java --version  
 ~~~
-#### 後端 : springboot3
+#### 後端 :   springboot3
 #### 前端渲染: thymeleaf + html + css + ajax
 #### 消息對列: kafka + zookeeper (單node)
-#### 監控: actuator + prometheus
-#### 資料庫: mysql8
-#### 緩存: redis6
-#### 容器化: docker-compose 
+#### 配置加密  Jasypt 
+#### 監控:    actuator + prometheus
+#### 資料庫:  mysql8
+#### 緩存:    redis6
+#### 容器化:  docker-compose 
 
 目前第二版待修正問題
 
 - knife4j與openapi3 DTO Model顯示不出來
 - 改為使用prometheus處理告警通知
-- 前端每小時加總以及每小時平均顯示問題
+- 導入OpenAI
 
 <hr>
 
