@@ -11,11 +11,11 @@
 #### 緩存: redis6
 #### 容器化: docker-compose 
 
-目前第二版帶修正問題
+目前第二版待修正問題
 
 - knife4j與openapi3 DTO Model顯示不出來
 - 改為使用prometheus處理告警通知
-- 前端增設頁面可設置排程動態處理
+- 前端每小時加總以及每小時平均顯示問題
 
 <hr>
 
