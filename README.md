@@ -59,15 +59,21 @@ docker-compose stop
 
 <hr>
 
-4. **STEP4**: 在IDE執行項目 沒有區分profile所以執行執行即可
+4. **STEP4**: 在IDE執行項目 有區分dev跟test版本 可以自行在application.properties當中設置
+   ~~~
+   # 開發用
+   spring.profile.active=dev
+   
+   #測試用
+   spring.prifile.active=test 測試用
+   ~~~
   
   > **注意** 執行前確認各容器運行是否正常
 
 ![確認個容器運行正常](https://github.com/user-attachments/assets/ae89d273-f1c9-43bf-aa7b-819192fbdb32)
 
 
-- 輸入 <http://localhost:9090> 確認 promethueus運行正常 (可去Configuration配置查看配置是否正確)
-
+- 輸入 <http://localhost:9090>
   ![普羅米修斯](https://github.com/user-attachments/assets/b302b55a-0841-46c5-9098-47553e5ffecd)
 
 - 確認kafka 運行正常 與zookeeper連線正常 (kafka 需將broker以及各項狀態數據紀錄至zookeeper保存確保附載均衡以及一致性)
