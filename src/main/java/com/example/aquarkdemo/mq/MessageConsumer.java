@@ -134,7 +134,6 @@ public class MessageConsumer {
         List<CompletableFuture<Void>> futures = partitions.stream()
                 .map(batch -> CompletableFuture.runAsync(() -> {
                     try {
-                        convertSpeed(batch);
                         validateThreshold(batch);
                         saveSensorData(batch);
                     } catch (Exception e) {
@@ -159,7 +158,6 @@ public class MessageConsumer {
      */
     private void saveSensorData(List<SensorData> sensorDataList) throws ThresHoldException {
         try {
-            convertSpeed(sensorDataList);
             validateThreshold(sensorDataList);
             List<SensorData> dbRecords = sensorDataRepository.saveAll(sensorDataList);
             if (!CollectionUtils.isEmpty(dbRecords)) {
@@ -182,20 +180,20 @@ public class MessageConsumer {
         return partitions;
     }
 
-    /**
-     * 轉換水流速度 (取絕對值)
-     * @param sensorDataList 感應器集合
-     */
-    private void convertSpeed(List<SensorData> sensorDataList) {
-        for (SensorData sensorData : sensorDataList) {
-            if(sensorData.getSensor() != null) {
-                if (sensorData.getSensor().getWaterSpeedAquark() != null) {
-                    sensorData.getSensor().getWaterSpeedAquark()
-                            .setSpeed(Math.abs(sensorData.getSensor().getWaterSpeedAquark().getSpeed()));
-                }
-            }
-        }
-    }
+    //    /**
+    //     * 轉換水流速度 (取絕對值)
+    //     * @param sensorDataList 感應器集合
+    //     */
+    //    private void convertSpeed(List<SensorData> sensorDataList) {
+    //        for (SensorData sensorData : sensorDataList) {
+    //            if(sensorData.getSensor() != null) {
+    //                if (sensorData.getSensor().getWaterSpeedAquark() != null) {
+    //                    sensorData.getSensor().getWaterSpeedAquark()
+    //                            .setSpeed(Math.abs(sensorData.getSensor().getWaterSpeedAquark().getSpeed()));
+    //                }
+    //            }
+    //        }
+    //    }
 
     /**
      * 驗證資料是否有超過闊值

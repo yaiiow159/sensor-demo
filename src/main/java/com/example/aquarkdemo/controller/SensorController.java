@@ -60,8 +60,6 @@ public class SensorController {
         return "off-peak-time-analysis";
     }
 
-    @GetMapping
-
     @PostMapping(value = "/query",produces = "application/x-www-form-urlencoded;charset=UTF-8")
     @Operation(summary = "取得數據", description = "按照前端選擇的條件來取相關數據", tags = "Sensor")
     public String getData(@Parameter(description = "日期", example = "2024-08-12", required = true) @RequestParam("startDate") String startDate,
