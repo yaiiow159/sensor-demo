@@ -11,10 +11,12 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.NoResultException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.kafka.retrytopic.DltStrategy;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -56,8 +58,10 @@ public class MessageConsumer {
     }
 
     @Transactional
-    @KafkaListener(topics = "sensor-data-topic", containerFactory = "kafkaListenerContainerFactory", groupId = "sensor-data-consumer-group")
-    @RetryableTopic(dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR, timeout = "60000",include = {ThresHoldException.class, JsonProcessingException.class, NoResultException.class})
+    @KafkaListener(topics = "sensor-data-topic", containerFactory = "kafkaListenerContainerFactory",
+            groupId = "sensor-data-consumer-group", topicPartitions = @TopicPartition(topic = "sensor-data-topic", partitions = { "0", "1", "2" }))
+    @RetryableTopic(dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR, timeout = "30000",
+            include = {ThresHoldException.class, JsonProcessingException.class, NoResultException.class, TimeoutException.class, RuntimeException.class})
     public void handleSensorData(ConsumerRecord<String, String> record, Acknowledgment ack) {
         log.debug("收到 sensor data: {}, 主題: {}, 分區: {}, 當前時間: {}",
                 record.value(), record.topic(), record.partition(), LocalDateTime.now(ZoneId.of("Asia/Taipei")));
@@ -180,21 +184,6 @@ public class MessageConsumer {
         return partitions;
     }
 
-    //    /**
-    //     * 轉換水流速度 (取絕對值)
-    //     * @param sensorDataList 感應器集合
-    //     */
-    //    private void convertSpeed(List<SensorData> sensorDataList) {
-    //        for (SensorData sensorData : sensorDataList) {
-    //            if(sensorData.getSensor() != null) {
-    //                if (sensorData.getSensor().getWaterSpeedAquark() != null) {
-    //                    sensorData.getSensor().getWaterSpeedAquark()
-    //                            .setSpeed(Math.abs(sensorData.getSensor().getWaterSpeedAquark().getSpeed()));
-    //                }
-    //            }
-    //        }
-    //    }
-
     /**
      * 驗證資料是否有超過闊值
      * @param sensorDataList 感應器集合
@@ -284,6 +273,13 @@ public class MessageConsumer {
         createMimeMessageAndSend(message, subject, sendMailUser, emailReceiver);
     }
 
+    /**
+     * 創建信件並寄送
+     * @param message      寄送訊息
+     * @param subject      主題
+     * @param sendMailUser 寄件人
+     * @param emailReceiver 收件人
+     */
     private void createMimeMessageAndSend(String message, String subject, String sendMailUser, String emailReceiver) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         try {
