@@ -90,10 +90,13 @@ docker-compose stop
   ![前端頁面](https://github.com/user-attachments/assets/dd600cef-35e6-4bba-bb4e-4293cd9bb6d0)
 
 5. **STEP5** 測試各項功能是否正常
-   ![回傳數據](https://github.com/user-attachments/assets/f3cb75d5-64ac-45c1-a73a-446736152ebe)
-   ![儀錶板](https://github.com/user-attachments/assets/2287dadf-0eaa-41ad-8e84-17b37dc4df35)
-   ![測試數據](https://github.com/user-attachments/assets/7bd25eb1-0cbd-47f3-9aaf-f150e6f70490)
-   ![排程功能](https://github.com/user-attachments/assets/10b24e36-036b-4a90-a415-ec753fb4d19d)
+   ![首頁](https://github.com/user-attachments/assets/9931acd5-5d25-41c2-8d7e-e7333e175ca7)
+   ![儀錶板總攬](https://github.com/user-attachments/assets/775023be-1d86-4fee-83cf-41e1c4afb33d)
+   ![美日分析](https://github.com/user-attachments/assets/bfe503e7-a023-4e71-b337-7ebb7d46a936)
+   ![每小時分析](https://github.com/user-attachments/assets/178b5d04-b9e9-4edd-85d2-bc1f486b6291)
+   ![離峰時段分析](https://github.com/user-attachments/assets/308af930-25b1-4ea9-b1af-861e29564e54)
+   ![尖峰時段分析](https://github.com/user-attachments/assets/0515db11-c09d-4f92-92b8-b04d2792c2d9)
+
    > **注意** 該功能尚在開發中 點及提交會跳出警示顯示
    ![AI小幫手](https://github.com/user-attachments/assets/a849239d-3bca-471c-b8d6-e6b4bda1e12f)
    > **注意** AI的API_KEY可自行在application.properties當中設置程自己的金鑰
