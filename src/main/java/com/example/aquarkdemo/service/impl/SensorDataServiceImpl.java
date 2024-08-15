@@ -116,10 +116,10 @@ public class SensorDataServiceImpl implements SensorDataService {
             offPeakSumDTO = sensorDataRepository.findPeekSumByTimeRange(offPeakStartTime, offPeakEndTime);
         }
         try {
-            if (peakAverageDTO != null) redisCacheClient.set(REDIS_PEAK_AVERAGE_KEY + "_" + now.toLocalDate(), peakAverageDTO);
-            if (peakSumDTO != null) redisCacheClient.set(REDIS_PEAK_SUM_KEY + "_" + now.toLocalDate(), peakSumDTO);
-            if (offPeakAverageDTO != null) redisCacheClient.set(REDIS_OFF_PEAK_AVERAGE_KEY + "_" + now.toLocalDate(), offPeakAverageDTO);
-            if (offPeakSumDTO != null) redisCacheClient.set(REDIS_OFF_PEAK_SUM_KEY + "_" + now.toLocalDate(), offPeakSumDTO);
+            if (peakAverageDTO != null) redisCacheClient.set(REDIS_PEAK_AVERAGE_KEY + "_" + now.toLocalDate(), peakAverageDTO,1L,TimeUnit.DAYS);
+            if (peakSumDTO != null) redisCacheClient.set(REDIS_PEAK_SUM_KEY + "_" + now.toLocalDate(), peakSumDTO,1L,TimeUnit.DAYS);
+            if (offPeakAverageDTO != null) redisCacheClient.set(REDIS_OFF_PEAK_AVERAGE_KEY + "_" + now.toLocalDate(), offPeakAverageDTO,1L,TimeUnit.DAYS);
+            if (offPeakSumDTO != null) redisCacheClient.set(REDIS_OFF_PEAK_SUM_KEY + "_" + now.toLocalDate(), offPeakSumDTO,1L,TimeUnit.DAYS);
         } catch (JsonProcessingException e) {
             log.error("計算平均值時發生異常 {}", e.getMessage());
             throw new CaculateException("計算尖峰、離峰時間平均值時發生異常, 原因:" + e.getMessage());
@@ -138,7 +138,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         DailySumDTO dailySums = sensorDataRepository.findDailySums(startTime, endTime);
         // 保存到 redis cache當中
         try {
-            if (dailySums != null) redisCacheClient.set(REDIS_DAILY_SUM_KEY + "_" + yesterday, dailySums);
+            if (dailySums != null) redisCacheClient.set(REDIS_DAILY_SUM_KEY + "_" + yesterday, dailySums,1L,TimeUnit.DAYS);
         } catch (JsonProcessingException e) {
             log.error("計算總和時發生異常 {}", e.getMessage());
             throw new CaculateException("計算每日加總時發生異常, 原因:" + e.getMessage());
@@ -157,7 +157,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         List<HourlyAverageDTO> hourlyAverages = sensorDataRepository.findHourlyAverages(startTime, endTime);
         // 保存到redis cache中
         try {
-            if (hourlyAverages != null) redisCacheClient.setToList(REDIS_HOURLY_AVERAGE_KEY + "_" + startTime.toLocalDate(), hourlyAverages);
+            if (hourlyAverages != null) redisCacheClient.setToList(REDIS_HOURLY_AVERAGE_KEY + "_" + startTime.toLocalDate(), hourlyAverages, 1L,TimeUnit.DAYS);
         } catch (JsonProcessingException e) {
             log.error("計算每小時平均值時發生異常 {}", e.getMessage());
             throw new CaculateException("計算每小時平均值時發生異常, 原因:" + e.getMessage());
@@ -173,7 +173,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         List<HourlySumDTO> hourlySums = sensorDataRepository.findHourlySums(startTime, endTime);
         // 保存到redis cache中
         try {
-            if (hourlySums != null) redisCacheClient.setToList(REDIS_HOURLY_SUM_KEY + "_" + startTime.toLocalDate(), hourlySums);
+            if (hourlySums != null) redisCacheClient.setToList(REDIS_HOURLY_SUM_KEY + "_" + startTime.toLocalDate(), hourlySums,1L,TimeUnit.DAYS);
         } catch (JsonProcessingException e) {
             log.error("計算每小時加總值時發生異常 {}", e.getMessage());
             throw new CaculateException("計算每小時加總值時發生異常, 原因:" + e.getMessage());
@@ -193,7 +193,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         DailyAverageDTO dailyAverageDTO = sensorDataRepository.findDailyAverages(startTime, endTime);
         // 保存到 redis cache當中
         try {
-            if (dailyAverageDTO != null) redisCacheClient.set(REDIS_DAILY_AVERAGE_KEY + "_" + yesterday, dailyAverageDTO);
+            if (dailyAverageDTO != null) redisCacheClient.set(REDIS_DAILY_AVERAGE_KEY + "_" + yesterday, dailyAverageDTO,1L,TimeUnit.DAYS);
         } catch (JsonProcessingException e) {
             log.error("計算每日平均時發生異常");
             throw new CaculateException("每日數據平均值加入緩存時發生異常,原因:" + e.getMessage());
