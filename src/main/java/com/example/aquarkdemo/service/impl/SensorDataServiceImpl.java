@@ -157,7 +157,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         List<HourlyAverageDTO> hourlyAverages = sensorDataRepository.findHourlyAverages(startTime, endTime);
         // 保存到redis cache中
         try {
-            if (hourlyAverages != null) redisCacheClient.set(REDIS_HOURLY_AVERAGE_KEY + "_" + startTime.toLocalDate(), hourlyAverages);
+            if (hourlyAverages != null) redisCacheClient.setToList(REDIS_HOURLY_AVERAGE_KEY + "_" + startTime.toLocalDate(), hourlyAverages);
         } catch (JsonProcessingException e) {
             log.error("計算每小時平均值時發生異常 {}", e.getMessage());
             throw new CaculateException("計算每小時平均值時發生異常, 原因:" + e.getMessage());
@@ -173,7 +173,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         List<HourlySumDTO> hourlySums = sensorDataRepository.findHourlySums(startTime, endTime);
         // 保存到redis cache中
         try {
-            if (hourlySums != null) redisCacheClient.set(REDIS_HOURLY_SUM_KEY + "_" + startTime.toLocalDate(), hourlySums);
+            if (hourlySums != null) redisCacheClient.setToList(REDIS_HOURLY_SUM_KEY + "_" + startTime.toLocalDate(), hourlySums);
         } catch (JsonProcessingException e) {
             log.error("計算每小時加總值時發生異常 {}", e.getMessage());
             throw new CaculateException("計算每小時加總值時發生異常, 原因:" + e.getMessage());
@@ -367,10 +367,8 @@ public class SensorDataServiceImpl implements SensorDataService {
             DailySumDTO dailySumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_DAILY_SUM_KEY + "_" + localDate), DailySumDTO.class);
             DailyAverageDTO dailyAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_DAILY_AVERAGE_KEY + "_" + localDate), DailyAverageDTO.class);
             // 每小時
-            List<HourlySumDTO> hourlySumDTO = JsonUtil.streamDeserializeToList(
-                    redisCacheClient.get(REDIS_HOURLY_SUM_KEY + "_" + localDate), HourlySumDTO.class);
-            List<HourlyAverageDTO> hourlyAverageDTO = JsonUtil.streamDeserializeToList(
-                    redisCacheClient.get(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate),HourlyAverageDTO.class);
+            List<HourlySumDTO> hourlySumDTO = redisCacheClient.getFromList(REDIS_HOURLY_SUM_KEY + "_" + localDate, new TypeReference<HourlySumDTO>() {});
+            List<HourlyAverageDTO> hourlyAverageDTO = redisCacheClient.getFromList(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, new TypeReference<HourlyAverageDTO>() {});
 
             // 尖峰、離峰
             PeakOffPeakSumDTO peakSumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_PEAK_SUM_KEY + "_" + localDate), PeakOffPeakSumDTO.class);
@@ -389,11 +387,11 @@ public class SensorDataServiceImpl implements SensorDataService {
             }
             if (hourlySumDTO == null || hourlySumDTO.isEmpty()) {
                 hourlySumDTO = sensorDataRepository.findHourlySums(startTime, endTime);
-                redisCacheClient.set(REDIS_HOURLY_SUM_KEY + "_" + localDate, hourlySumDTO, 60L, TimeUnit.SECONDS);
+                redisCacheClient.setToList(REDIS_HOURLY_SUM_KEY + "_" + localDate, hourlySumDTO, 60L, TimeUnit.SECONDS);
             }
             if (hourlyAverageDTO == null || hourlyAverageDTO.isEmpty()) {
                 hourlyAverageDTO = sensorDataRepository.findHourlyAverages(startTime, endTime);
-                redisCacheClient.set(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, hourlyAverageDTO, 60L, TimeUnit.SECONDS);
+                redisCacheClient.setToList(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, hourlyAverageDTO,60L,TimeUnit.SECONDS);
             }
             // 驗證這天是禮拜幾 還有 時間段
             if (PeakOffPeakTimeChecker.isCalculatePeakFullDay(startTime)) {
@@ -527,18 +525,16 @@ public class SensorDataServiceImpl implements SensorDataService {
         LocalDateTime endTime = localDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Taipei")).toLocalDateTime();
 
         try {
-            List<HourlySumDTO> hourlySumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_HOURLY_SUM_KEY + "_" + localDate), new TypeReference<List<HourlySumDTO>>() {
-            });
-            List<HourlyAverageDTO> hourlyAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate), new TypeReference<List<HourlyAverageDTO>>() {
-            });
+            List<HourlySumDTO> hourlySumDTO = redisCacheClient.getFromList(REDIS_HOURLY_SUM_KEY + "_" + localDate, new TypeReference<HourlySumDTO>() {});
+            List<HourlyAverageDTO> hourlyAverageDTO = redisCacheClient.getFromList(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, new TypeReference<HourlyAverageDTO>() {});
 
             if (hourlySumDTO == null || hourlySumDTO.isEmpty()) {
                 hourlySumDTO = sensorDataRepository.findHourlySums(startTime, endTime);
-                redisCacheClient.set(REDIS_HOURLY_SUM_KEY + "_" + localDate, JsonUtil.serialize(hourlySumDTO),1L,TimeUnit.MINUTES);
+                redisCacheClient.setToList(REDIS_HOURLY_SUM_KEY + "_" + localDate, hourlySumDTO,1L,TimeUnit.MINUTES);
             }
             if (hourlyAverageDTO == null || hourlyAverageDTO.isEmpty()) {
                 hourlyAverageDTO = sensorDataRepository.findHourlyAverages(startTime, endTime);
-                redisCacheClient.set(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(hourlyAverageDTO),1L,TimeUnit.MINUTES);
+                redisCacheClient.setToList(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, hourlyAverageDTO,1L,TimeUnit.MINUTES);
             }
 
             result.put("hourlySumDTO", hourlySumDTO);

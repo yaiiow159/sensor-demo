@@ -1,6 +1,8 @@
 package com.example.aquarkdemo.util;
 
+import com.example.aquarkdemo.dto.BaseHourDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -43,24 +46,54 @@ public class RedisCacheClient {
         stringRedisTemplate.opsForHash().get(key, hashKey);
     }
 
-    public void setToList(String key, Object value) throws JsonProcessingException {
-        stringRedisTemplate.opsForList().leftPushAll(key, JsonUtil.serialize(value));
+
+    public void setToList(String key, List<?> list) throws JsonProcessingException {
+        List<String> serializedList = new LinkedList<>();
+        for (Object obj : list) {
+            serializedList.add(JsonUtil.serialize(obj));
+        }
+        stringRedisTemplate.opsForList().leftPushAll(key, serializedList);
     }
 
-    public void getFromList(String key) {
-        stringRedisTemplate.opsForList().leftPop(key);
+    public void setToList(String key, List<?> list, Long timeout, TimeUnit unit) throws JsonProcessingException {
+        List<String> serializedList = new LinkedList<>();
+        for (Object obj : list) {
+            serializedList.add(JsonUtil.serialize(obj));
+        }
+        stringRedisTemplate.opsForList().leftPushAll(key, serializedList);
+        stringRedisTemplate.expire(key, timeout, unit);
     }
 
-    public void getFromList(String key, Long ttlTime, TimeUnit timeUnit) {
-        stringRedisTemplate.opsForList().leftPop(key, ttlTime, timeUnit);
+    public <T> List<T> getFromList(String key, Class<T> clazz) throws JsonProcessingException {
+        List<String> serializedList = stringRedisTemplate.opsForList().range(key, 0, -1);
+        List<T> resultList = new LinkedList<>();
+        if (serializedList != null && !serializedList.isEmpty()) {
+            for (String serialized : serializedList) {
+                T obj = JsonUtil.getInstance().readValue(serialized, clazz);
+                resultList.add(obj);
+            }
+        }
+        return resultList;
+    }
+
+    public <T> List<T> getFromList(String key, TypeReference<T> typeReference) throws JsonProcessingException {
+        List<String> serializedList = stringRedisTemplate.opsForList().range(key, 0, -1);
+        List<T> resultList = new LinkedList<>();
+        if (serializedList != null && !serializedList.isEmpty()) {
+            for (String serialized : serializedList) {
+                T obj = JsonUtil.getInstance().readValue(serialized, typeReference);
+                resultList.add(obj);
+            }
+        }
+        return resultList;
     }
 
     public void setToSet(String key, Object value) throws JsonProcessingException {
         stringRedisTemplate.opsForSet().add(key, JsonUtil.serialize(value));
     }
 
-    public void getFromSet(String key) {
-        stringRedisTemplate.opsForSet().pop(key);
+    public String getFromSet(String key) {
+        return stringRedisTemplate.opsForSet().pop(key);
     }
 
     public String get(String key) {

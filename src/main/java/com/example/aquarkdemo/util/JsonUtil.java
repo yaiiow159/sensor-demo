@@ -53,7 +53,7 @@ public class JsonUtil {
      * @throws JsonProcessingException
      */
     public static <T> T deserialize(String json, final Class<T> clazz) throws JsonProcessingException {
-        if(json == null) {
+        if(validateJson(json)) {
             return null;
         }
         if (json.startsWith("\"") && json.endsWith("\"")) {
@@ -72,7 +72,7 @@ public class JsonUtil {
      * @throws JsonProcessingException
      */
     public static <T> T deserialize(String json, final TypeReference<T> typeReference) throws JsonProcessingException {
-        if(json == null) {
+        if(validateJson(json)) {
             return null;
         }
         if (json.startsWith("\"") && json.endsWith("\"")) {
@@ -92,7 +92,7 @@ public class JsonUtil {
      * @throws IOException
      */
     public static <T> List<T> streamDeserializeToList(String json, final Class<T> clazz) throws IOException {
-        if(json == null) {
+        if(validateJson(json)) {
             return null;
         }
         List<T> list = new LinkedList<>();
@@ -100,7 +100,7 @@ public class JsonUtil {
         try (JsonParser jsonParser = jsonFactory.createParser(json)) {
 
             if(jsonParser.nextToken() != JsonToken.END_ARRAY) {
-                throw new IllegalArgumentException("JSON 格式錯誤");
+                throw new IllegalArgumentException("JSON 格式錯誤 JSON : " + json);
             }
             while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
                 T obj = getInstance().readValue(jsonParser, clazz);
@@ -119,13 +119,13 @@ public class JsonUtil {
      * @throws IOException
      */
     public static <T> T streamDeserialize(String json, final Class<T> clazz) throws IOException {
-        if(json == null) {
+        if(validateJson(json)) {
             return null;
         }
         JsonFactory jsonFactory = getInstance().getFactory();
         try (JsonParser jsonParser = jsonFactory.createParser(json)) {
             if(jsonParser.nextToken() != JsonToken.END_OBJECT) {
-                throw new IllegalArgumentException("JSON 格式錯誤");
+                throw new IllegalArgumentException("JSON 格式錯誤 JSON : " + json);
             }
             while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
                 T obj = getInstance().readValue(jsonParser, clazz);
@@ -144,13 +144,13 @@ public class JsonUtil {
      * @throws IOException
      */
     public static <T> T streamDeserialize(String json, final TypeReference<T> typeReference) throws IOException {
-        if(json == null) {
+        if(validateJson(json)) {
             return null;
         }
         JsonFactory jsonFactory = getInstance().getFactory();
         try (JsonParser jsonParser = jsonFactory.createParser(json)) {
             if (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-                throw new IllegalArgumentException("JSON 格式錯誤");
+                throw new IllegalArgumentException("JSON 格式錯誤 JSON : " + json);
             }
             while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
                 T obj = getInstance().readValue(jsonParser, typeReference);
@@ -169,7 +169,7 @@ public class JsonUtil {
      * @throws IOException
      */
     public static <T> List<T> streamDeserializeToList(String json, final TypeReference<T> typeReference) throws IOException {
-        if(json == null) {
+        if(validateJson(json)) {
             return null;
         }
         List<T> list = new LinkedList<>();
@@ -177,7 +177,7 @@ public class JsonUtil {
         try (JsonParser jsonParser = jsonFactory.createParser(json)) {
 
             if(jsonParser.nextToken() != JsonToken.END_ARRAY) {
-                throw new IllegalArgumentException("JSON 格式錯誤");
+                throw new IllegalArgumentException("JSON 格式錯誤 JSON : " + json);
             }
             while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
                 T obj = getInstance().readValue(jsonParser, typeReference);
@@ -201,6 +201,10 @@ public class JsonUtil {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.registerModule(new Jdk8Module());
         return objectMapper;
+    }
+
+    private static boolean validateJson(String json) {
+        return json == null || json.isEmpty() || json.equals("[]");
     }
 
 }
