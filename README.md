@@ -100,6 +100,7 @@ docker-compose stop
    > **注意** 該功能尚在開發中 點及提交會跳出警示顯示
    ![AI小幫手](https://github.com/user-attachments/assets/a849239d-3bca-471c-b8d6-e6b4bda1e12f)
    > **注意** AI的API_KEY可自行在application.properties當中設置程自己的金鑰
+   ![系統監控](https://github.com/user-attachments/assets/2e33a23c-d569-42dd-800f-7635a424a4f3)
 
    
    
