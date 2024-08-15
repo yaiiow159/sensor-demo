@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class TaskScheduleController {
 
     @GetMapping("/")
-    @Operation(summary = "進入排程頁面", description = "進入排程頁面")
+    @Operation(summary = "進入排程頁面", description = "進入排程頁面", tags = "查詢")
     public String taskSchedule() {
         return "task-schedule";
     }

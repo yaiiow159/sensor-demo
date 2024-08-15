@@ -380,31 +380,39 @@ public class SensorDataServiceImpl implements SensorDataService {
             // 如果沒有值 則向db查詢
             if (dailySumDTO == null) {
                 dailySumDTO = sensorDataRepository.findDailySums(startTime, endTime);
+                redisCacheClient.set(REDIS_DAILY_SUM_KEY + "_" + localDate, dailySumDTO, 60L, TimeUnit.SECONDS);
             }
             if (dailyAverageDTO == null) {
                 dailyAverageDTO = sensorDataRepository.findDailyAverages(startTime, endTime);
+                redisCacheClient.set(REDIS_DAILY_AVERAGE_KEY + "_" + localDate, dailyAverageDTO, 60L, TimeUnit.SECONDS);
             }
             if (hourlySumDTO == null || CollectionUtils.isEmpty(hourlySumDTO)) {
                 hourlySumDTO = sensorDataRepository.findHourlySums(startTime, endTime);
+                redisCacheClient.set(REDIS_HOURLY_SUM_KEY + "_" + localDate, hourlySumDTO, 60L, TimeUnit.SECONDS);
             }
             if (hourlyAverageDTO == null || CollectionUtils.isEmpty(hourlyAverageDTO)) {
                 hourlyAverageDTO = sensorDataRepository.findHourlyAverages(startTime, endTime);
+                redisCacheClient.set(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, hourlyAverageDTO, 60L, TimeUnit.SECONDS);
             }
             // 驗證這天是禮拜幾 還有 時間段
             if (PeakOffPeakTimeChecker.isCalculatePeakFullDay(startTime)) {
                 // 全天的尖峰時段
                 if (peakSumDTO == null) {
                     peakSumDTO = sensorDataRepository.findPeekSumByTimeRange(startTime, endTime);
+                    redisCacheClient.set(REDIS_PEAK_SUM_KEY + "_" + localDate, peakSumDTO, 60L, TimeUnit.SECONDS);
                 }
                 if (peakAverageDTO == null) {
                     peakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(startTime, endTime);
+                    redisCacheClient.set(REDIS_PEAK_AVERAGE_KEY + "_" + localDate, peakAverageDTO, 60L, TimeUnit.SECONDS);
                 }
             } else if (PeakOffPeakTimeChecker.isCalculateOffPeakFullDay(startTime)) {
                 if(offPeakAverageDTO == null) {
                     offPeakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(startTime,endTime);
+                    redisCacheClient.set(REDIS_OFF_PEAK_AVERAGE_KEY + "_" + localDate, offPeakAverageDTO, 60L, TimeUnit.SECONDS);
                 }
                 if(offPeakSumDTO == null) {
                     offPeakSumDTO =   sensorDataRepository.findPeekSumByTimeRange(startTime, endTime);
+                    redisCacheClient.set(REDIS_OFF_PEAK_SUM_KEY + "_" + localDate, offPeakSumDTO, 60L, TimeUnit.SECONDS);
                 }
             } else {
                 // 上午七點半到下午五點半
@@ -412,19 +420,44 @@ public class SensorDataServiceImpl implements SensorDataService {
                 LocalDateTime peekEndTime = localDate.atTime(17, 30);
 
                 // 離峰時段 下午五點半到晚上12點
+                // 還有 00:00 到早上 7:30
                 LocalDateTime offPeakStartTime = localDate.atTime(17, 30);
-                LocalDateTime offPeakEndTime = localDate.atTime(23, 59);
+                LocalDateTime offPeakEndTime = localDate.plusDays(1).atStartOfDay();
+
+                LocalDateTime offPeakStartTime2 = localDate.minusDays(1).atStartOfDay();
+                LocalDateTime offPeakEndTime2 = localDate.atTime(7, 30);
 
                 ZoneId zoneId = ZoneId.of("Asia/Taipei");
                 peekStartTime = peekStartTime.atZone(zoneId).toLocalDateTime();
                 peekEndTime = peekEndTime.atZone(zoneId).toLocalDateTime();
                 offPeakStartTime = offPeakStartTime.atZone(zoneId).toLocalDateTime();
                 offPeakEndTime = offPeakEndTime.atZone(zoneId).toLocalDateTime();
+                offPeakStartTime2 = offPeakStartTime2.atZone(zoneId).toLocalDateTime();
+                offPeakEndTime2 = offPeakEndTime2.atZone(zoneId).toLocalDateTime();
 
-                peakSumDTO = sensorDataRepository.findPeekSumByTimeRange(peekStartTime, peekEndTime);
-                peakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(peekStartTime, peekEndTime);
-                offPeakSumDTO = sensorDataRepository.findPeekSumByTimeRange(offPeakStartTime, offPeakEndTime);
-                offPeakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(offPeakStartTime, offPeakEndTime);
+                if(peakSumDTO == null) {
+                    peakSumDTO = sensorDataRepository.findPeekSumByTimeRange(peekStartTime, peekEndTime);
+                    redisCacheClient.set(REDIS_PEAK_SUM_KEY + "_" + localDate, JsonUtil.serialize(peakSumDTO), 1L, TimeUnit.MINUTES);
+                }
+                if(peakAverageDTO == null) {
+                    peakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(peekStartTime, peekEndTime);
+                    redisCacheClient.set(REDIS_PEAK_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(peakAverageDTO), 1L, TimeUnit.MINUTES);
+                }
+                if(offPeakAverageDTO == null) {
+                    offPeakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(offPeakStartTime, offPeakEndTime);
+                    // 查詢 00:00 到早上 7:30 的數據
+                    PeakOffPeakAverageDTO offPeakAverageDTO2 = sensorDataRepository.findPeakOffPeakAvgByTimeRange(offPeakStartTime2, offPeakEndTime2);
+                    // 把 00:00 到 早上7:30 還有 5:30 到 00:00的數據相加
+                    offPeakAverageDTO = sumPeakOffPeakAverageDTO(offPeakAverageDTO, offPeakAverageDTO2);
+                    redisCacheClient.set(REDIS_OFF_PEAK_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(offPeakAverageDTO), 1L, TimeUnit.MINUTES);
+                }
+                if(offPeakSumDTO == null) {
+                    offPeakSumDTO = sensorDataRepository.findPeekSumByTimeRange(offPeakStartTime, offPeakEndTime);
+                    PeakOffPeakSumDTO offPeakSumDTO2 = sensorDataRepository.findPeekSumByTimeRange(offPeakStartTime2, offPeakEndTime2);
+                    // 把 00:00 到 早上7:30 還有 5:30 到 00:00的數據相加
+                    offPeakSumDTO = sumPeakOffPeakSumDTO(offPeakSumDTO, offPeakSumDTO2);
+                    redisCacheClient.set(REDIS_OFF_PEAK_SUM_KEY + "_" + localDate, JsonUtil.serialize(offPeakSumDTO), 1L, TimeUnit.MINUTES);
+                }
             }
 
             result.put("dailySumDTO", dailySumDTO);
@@ -441,8 +474,217 @@ public class SensorDataServiceImpl implements SensorDataService {
         return result;
     }
 
-    private LocalDateTime transformDate(String date) {
-        LocalDateTime dateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        return dateTime.atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+    /**
+     * 取得每日平均跟加總的相關數據
+     * @param date 查詢時段 yyyy-MM-dd
+     * @return Map<String, Object>
+     */
+    @Override
+    public Map<String, Object> queryDailyAnalysis(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        HashMap<String, Object> result = new HashMap<>();
+
+        // 取得當時時間的一整天
+        LocalDateTime startTime = localDate.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+        LocalDateTime endTime = localDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+
+        // 每日
+        try {
+            DailySumDTO dailySumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_DAILY_SUM_KEY + "_" + localDate), DailySumDTO.class);
+            DailyAverageDTO dailyAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_DAILY_AVERAGE_KEY + "_" + localDate), DailyAverageDTO.class);
+
+            if (dailySumDTO == null) {
+                dailySumDTO = sensorDataRepository.findDailySums(startTime, endTime);
+                redisCacheClient.set(REDIS_DAILY_SUM_KEY + "_" + localDate, JsonUtil.serialize(dailySumDTO), 60L, TimeUnit.SECONDS);
+            }
+            if (dailyAverageDTO == null) {
+                dailyAverageDTO = sensorDataRepository.findDailyAverages(startTime, endTime);
+                redisCacheClient.set(REDIS_DAILY_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(dailyAverageDTO), 60L, TimeUnit.SECONDS);
+            }
+
+            result.put("dailySumDTO", dailySumDTO);
+            result.put("dailyAverageDTO", dailyAverageDTO);
+        } catch (JsonProcessingException e) {
+            throw new CaculateException("反序列化時發生異常", e);
+        }
+
+        return result;
     }
+
+    /**
+     * 取得每小時平均跟加總的相關數據
+     * @param date 查詢時段 yyyy-MM-dd
+     * @return Map<String, Object>
+     */
+    @Override
+    public Map<String, Object> queryHourlyAnalysis(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        HashMap<String, Object> result = new HashMap<>();
+
+        // 取得當時時間的一整天
+        LocalDateTime startTime = localDate.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+        LocalDateTime endTime = localDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+
+        try {
+            List<HourlySumDTO> hourlySumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_HOURLY_SUM_KEY + "_" + localDate), new TypeReference<List<HourlySumDTO>>() {
+            });
+            List<HourlyAverageDTO> hourlyAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate), new TypeReference<List<HourlyAverageDTO>>() {
+            });
+
+            if (hourlySumDTO == null) {
+                hourlySumDTO = sensorDataRepository.findHourlySums(startTime, endTime);
+                redisCacheClient.set(REDIS_HOURLY_SUM_KEY + "_" + localDate, JsonUtil.serialize(hourlySumDTO),1L,TimeUnit.MINUTES);
+            }
+            if (hourlyAverageDTO == null) {
+                hourlyAverageDTO = sensorDataRepository.findHourlyAverages(startTime, endTime);
+                redisCacheClient.set(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(hourlyAverageDTO),1L,TimeUnit.MINUTES);
+            }
+
+            result.put("hourlySumDTO", hourlySumDTO);
+            result.put("hourlyAverageDTO", hourlyAverageDTO);
+        } catch (JsonProcessingException e) {
+            throw new CaculateException("反序列化時發生異常", e);
+        }
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> queryOffPeakAnalysis(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        HashMap<String, Object> result = new HashMap<>();
+
+        // 取得當時時間的一整天
+        LocalDateTime startTime = localDate.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+        LocalDateTime endTime = localDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+
+        try {
+            PeakOffPeakSumDTO offPeakSumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_OFF_PEAK_SUM_KEY + "_" + localDate), PeakOffPeakSumDTO.class);
+            PeakOffPeakAverageDTO offPeakAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_OFF_PEAK_AVERAGE_KEY + "_" + localDate), PeakOffPeakAverageDTO.class);
+
+            if (PeakOffPeakTimeChecker.isCalculateOffPeakFullDay(startTime)) {
+                if(offPeakAverageDTO == null) {
+                    offPeakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(startTime,endTime);
+                    redisCacheClient.set(REDIS_OFF_PEAK_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(offPeakAverageDTO), 1L, TimeUnit.MINUTES);
+                }
+                if(offPeakSumDTO == null) {
+                    offPeakSumDTO =   sensorDataRepository.findPeekSumByTimeRange(startTime, endTime);
+                    redisCacheClient.set(REDIS_OFF_PEAK_SUM_KEY + "_" + localDate, JsonUtil.serialize(offPeakSumDTO), 1L, TimeUnit.MINUTES);
+                }
+            } else {
+
+                ZoneId zoneId = ZoneId.of("Asia/Taipei");
+                // 離峰時段 下午五點半到晚上12點
+                // 還有 00:00 到早上 7:30
+                LocalDateTime offPeakStartTime = localDate.atTime(17, 30);
+                LocalDateTime offPeakEndTime = localDate.plusDays(1).atStartOfDay();
+
+                LocalDateTime offPeakStartTime2 = localDate.minusDays(1).atStartOfDay();
+                LocalDateTime offPeakEndTime2 = localDate.atTime(7, 30);
+
+                offPeakStartTime = offPeakStartTime.atZone(zoneId).toLocalDateTime();
+                offPeakEndTime = offPeakEndTime.atZone(zoneId).toLocalDateTime();
+                offPeakStartTime2 = offPeakStartTime2.atZone(zoneId).toLocalDateTime();
+                offPeakEndTime2 = offPeakEndTime2.atZone(zoneId).toLocalDateTime();
+
+                if(offPeakAverageDTO == null) {
+                    offPeakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(offPeakStartTime, offPeakEndTime);
+                    // 查詢 00:00 到早上 7:30 的數據
+                    PeakOffPeakAverageDTO offPeakAverageDTO2 = sensorDataRepository.findPeakOffPeakAvgByTimeRange(offPeakStartTime2, offPeakEndTime2);
+                    // 把 00:00 到 早上7:30 還有 5:30 到 00:00的數據相加
+                    offPeakAverageDTO = sumPeakOffPeakAverageDTO(offPeakAverageDTO, offPeakAverageDTO2);
+                    redisCacheClient.set(REDIS_OFF_PEAK_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(offPeakAverageDTO), 1L, TimeUnit.MINUTES);
+                }
+                if(offPeakSumDTO == null) {
+                    offPeakSumDTO = sensorDataRepository.findPeekSumByTimeRange(offPeakStartTime, offPeakEndTime);
+                    PeakOffPeakSumDTO offPeakSumDTO2 = sensorDataRepository.findPeekSumByTimeRange(offPeakStartTime2, offPeakEndTime2);
+                    // 把 00:00 到 早上7:30 還有 5:30 到 00:00的數據相加
+                    offPeakSumDTO = sumPeakOffPeakSumDTO(offPeakSumDTO, offPeakSumDTO2);
+                    redisCacheClient.set(REDIS_OFF_PEAK_SUM_KEY + "_" + localDate, JsonUtil.serialize(offPeakSumDTO), 1L, TimeUnit.MINUTES);
+                }
+            }
+            result.put("offPeakSumDTO", offPeakSumDTO);
+            result.put("offPeakAverageDTO", offPeakAverageDTO);
+        } catch (JsonProcessingException e) {
+            throw new CaculateException("反序列化時發生異常",e);
+        }
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> queryPeakAnalysis(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        HashMap<String, Object> result = new HashMap<>();
+
+        // 取得當時時間的一整天
+        LocalDateTime startTime = localDate.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+        LocalDateTime endTime = localDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+
+        try {
+            PeakOffPeakSumDTO peakSumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_PEAK_SUM_KEY + "_" + localDate), PeakOffPeakSumDTO.class);
+            PeakOffPeakAverageDTO peakAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_PEAK_AVERAGE_KEY + "_" + localDate), PeakOffPeakAverageDTO.class);
+
+            if (PeakOffPeakTimeChecker.isCalculatePeakFullDay(startTime)) {
+                if(peakAverageDTO == null) {
+                    peakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(startTime,endTime);
+                    redisCacheClient.set(REDIS_PEAK_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(peakAverageDTO), 1L, TimeUnit.MINUTES);
+                }
+                if(peakSumDTO == null) {
+                    peakSumDTO =   sensorDataRepository.findPeekSumByTimeRange(startTime, endTime);
+                    redisCacheClient.set(REDIS_PEAK_SUM_KEY + "_" + localDate, JsonUtil.serialize(peakSumDTO), 1L, TimeUnit.MINUTES);
+                }
+            } else {
+                // 上午七點半到下午五點半
+                LocalDateTime peekStartTime = localDate.atTime(7, 30);
+                LocalDateTime peekEndTime = localDate.atTime(17, 30);
+
+                ZoneId zoneId = ZoneId.of("Asia/Taipei");
+                peekStartTime = peekStartTime.atZone(zoneId).toLocalDateTime();
+                peekEndTime = peekEndTime.atZone(zoneId).toLocalDateTime();
+
+                if(peakSumDTO == null) {
+                    peakSumDTO = sensorDataRepository.findPeekSumByTimeRange(peekStartTime, peekEndTime);
+                    redisCacheClient.set(REDIS_PEAK_SUM_KEY + "_" + localDate, JsonUtil.serialize(peakSumDTO), 1L, TimeUnit.MINUTES);
+                }
+                if(peakAverageDTO == null) {
+                    peakAverageDTO = sensorDataRepository.findPeakOffPeakAvgByTimeRange(peekStartTime, peekEndTime);
+                    redisCacheClient.set(REDIS_PEAK_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(peakAverageDTO), 1L, TimeUnit.MINUTES);
+                }
+            }
+            result.put("peakSumDTO", peakSumDTO);
+            result.put("peakAverageDTO", peakAverageDTO);
+        } catch (JsonProcessingException e) {
+            throw new CaculateException("反序列化時發生異常",e);
+        }
+
+        return result;
+    }
+
+    private PeakOffPeakSumDTO sumPeakOffPeakSumDTO(PeakOffPeakSumDTO dto1, PeakOffPeakSumDTO dto2) {
+        PeakOffPeakSumDTO result = new PeakOffPeakSumDTO();
+        result.setSumTx(dto1.getSumTx() + dto2.getSumTx());
+        result.setSumRh(dto1.getSumRh() + dto2.getSumRh());
+        result.setSumV1(dto1.getSumV1() + dto2.getSumV1());
+        result.setSumV5(dto1.getSumV5() + dto2.getSumV5());
+        result.setSumV6(dto1.getSumV6() + dto2.getSumV6());
+        result.setSumEcho(dto1.getSumEcho() + dto2.getSumEcho());
+        result.setSumRain_d(dto1.getSumRain_d() + dto2.getSumRain_d());
+        result.setSumHourSpeed(dto1.getSumHourSpeed() + dto2.getSumHourSpeed());
+        return result;
+    }
+
+    private PeakOffPeakAverageDTO sumPeakOffPeakAverageDTO(PeakOffPeakAverageDTO dto1, PeakOffPeakAverageDTO dto2) {
+        PeakOffPeakAverageDTO result = new PeakOffPeakAverageDTO();
+        result.setAvgEcho(dto1.getAvgEcho() + dto2.getAvgEcho());
+        result.setAvgSpeed(dto1.getAvgSpeed() + dto2.getAvgSpeed());
+        result.setAvgRainD(dto1.getAvgRainD() + dto2.getAvgRainD());
+        result.setAvgV1(dto1.getAvgV1() + dto2.getAvgV1());
+        result.setAvgV5(dto1.getAvgV5() + dto2.getAvgV5());
+        result.setAvgV6(dto1.getAvgV6() + dto2.getAvgV6());
+        result.setAvgTx(dto1.getAvgTx() + dto2.getAvgTx());
+        result.setAvgRh(dto1.getAvgRh() + dto2.getAvgRh());
+        return result;
+    }
+
 }

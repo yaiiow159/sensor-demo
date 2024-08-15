@@ -41,6 +41,32 @@ public class SensorController {
         return "dashboard";
     }
 
+    @GetMapping("/daily-analysis")
+    @Operation(summary = "進入每日分析頁面", description = "進入每日分析頁面", tags = "查詢")
+    public String dailyAnalysis() {
+        return "daily-analysis";
+    }
+
+    @GetMapping("/hourly-analysis")
+    @Operation(summary = "進入每小時分析頁面", description = "進入每小時分析頁面", tags = "查詢")
+    public String hourlyAnalysis() {
+        return "hourly-analysis";
+    }
+
+    @GetMapping("/peak-time-analysis")
+    @Operation(summary = "進入峰時分析頁面", description = "進入峰時分析頁面", tags = "查詢")
+    public String peakTimeAnalysis() {
+        return "peak-time-analysis";
+    }
+
+    @GetMapping("/off-peak-time-analysis")
+    @Operation(summary = "進入尖峰時段分析頁面", description = "進入尖峰時段分析頁面", tags = "查詢")
+    public String offPeakTimeAnalysis() {
+        return "off-peak-time-analysis";
+    }
+
+    @GetMapping
+
     @PostMapping(value = "/query",produces = "application/x-www-form-urlencoded;charset=UTF-8")
     @Operation(summary = "取得數據", description = "按照前端選擇的條件來取相關數據", tags = "Sensor")
     public String getData(@Parameter(description = "日期", example = "2024-08-12", required = true) @RequestParam("startDate") String startDate,
@@ -62,6 +88,38 @@ public class SensorController {
     public Map<String, Object> getDashboardData(@Parameter(description = "日期", example = "2024-08-12", required = true)
                                                 @RequestParam("date") String date) {
         return sensorDataService.queryDashboardData(date);
+    }
+
+    @GetMapping(value = "/daily-analysis/data",produces = "application/json;charset=UTF-8")
+    @Operation(summary = "取得每日分析的相關數據", description = "取得每日分析的相關數據", tags = "Sensor")
+    @ResponseBody
+    public Map<String, Object> getDailyAnalysis(@Parameter(description = "日期", example = "2024-08-12", required = true)
+                                                @RequestParam("date") String date) {
+        return sensorDataService.queryDailyAnalysis(date);
+    }
+
+    @GetMapping(value = "/hourly-analysis/data",produces = "application/json;charset=UTF-8")
+    @Operation(summary = "取得每小時分析的相關數據", description = "取得每小時分析的相關數據", tags = "Sensor")
+    @ResponseBody
+    public Map<String, Object> getHourlyAnalysis(@Parameter(description = "日期", example = "2024-08-12", required = true)
+                                                @RequestParam("date") String date) {
+        return sensorDataService.queryHourlyAnalysis(date);
+    }
+
+    @GetMapping(value = "/off-peak-analysis/data",produces = "application/json;charset=UTF-8")
+    @Operation(summary = "取得離峰時段分析的相關數據", description = "取得離峰時段分析的相關數據", tags = "Sensor")
+    @ResponseBody
+    public Map<String, Object> getOffPeakAnalysis(@Parameter(description = "日期", example = "2024-08-12", required = true)
+                                                @RequestParam("date") String date) {
+        return sensorDataService.queryOffPeakAnalysis(date);
+    }
+
+    @GetMapping(value = "/peak-analysis/data",produces = "application/json;charset=UTF-8")
+    @Operation(summary = "取得尖峰時段分析的相關數據", description = "取得尖峰時段分析的相關數據", tags = "Sensor")
+    @ResponseBody
+    public Map<String, Object> getPeakAnalysis(@Parameter(description = "日期", example = "2024-08-12", required = true)
+                                                @RequestParam("date") String date) {
+        return sensorDataService.queryPeakAnalysis(date);
     }
 
 }

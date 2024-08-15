@@ -26,4 +26,11 @@ public interface SensorDataService {
     Map<String, Object> queryDashboardData(String date);
 
 
+    Map<String, Object> queryDailyAnalysis(String date);
+
+    Map<String, Object> queryHourlyAnalysis(String date);
+
+    Map<String, Object> queryOffPeakAnalysis(String date);
+
+    Map<String, Object> queryPeakAnalysis(String date);
 }

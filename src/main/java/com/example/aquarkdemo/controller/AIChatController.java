@@ -20,13 +20,13 @@ public class AIChatController {
     private final ChatClient chatClient;
 
     @GetMapping("/")
-    @Operation(summary = "進入AI小助手頁面", description = "進入AI小助手頁面")
+    @Operation(summary = "進入AI小助手頁面", description = "進入AI小助手頁面", tags = "查詢")
     public String aichat() {
         return "ai-chat";
     }
 
     @PostMapping(value = "/chat",produces = "application/json;charset=UTF-8")
-    @Operation(summary = "AI聊天", description = "根據前端請求訊息響應AI的訊息")
+    @Operation(summary = "AI聊天", description = "根據前端請求訊息響應AI的訊息", tags = "AI-Chat")
     @ResponseBody
     public String chat(@Parameter(description = "訊息", example = "你好", required = true) @RequestBody String message) {
         String response = "";
