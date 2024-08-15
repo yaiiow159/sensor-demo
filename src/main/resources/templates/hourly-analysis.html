@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>每小時分析</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://kit.fontawesome.com/63b39233d0.js" crossorigin="anonymous"></script>
+
+  <style>
+    .container-fluid {
+      padding-left: 0 !important;
+    }
+  </style>
+</head>
+<body>
+<div th:insert="header :: header"></div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-3">
+      <div th:insert="sidebar :: sidebar"></div>
+    </div>
+    <div class="col-8 pt-5">
+      <h1>每小時分析</h1>
+      <div>
+        <label for="date" class="form-label">查詢日期</label>
+        <input type="date" class="form-control" id="date" name="date">
+        <button type="button" class="btn btn-primary mb-3 mt-3" onclick="getDataAndUpdateCharts()">
+          查詢
+        </button>
+      </div>
+      <canvas id="hourlySumChart" width="400" height="100"></canvas>
+      <canvas id="hourlyAvgChart" width="400" height="100"></canvas>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  function initializeHourCharts(ctx) {
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: []
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Hour'
+            }
+          },
+          y: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Values'
+            }
+          }
+        }
+      }
+    })
+  }
+
+  // 每小時加總圖表
+  const hourlySumChart = initializeHourCharts(
+          document.getElementById('hourlySumChart').getContext('2d')
+  );
+
+  // 每小時平均圖表
+  const hourlyAvgChart = initializeHourCharts(
+          document.getElementById('hourlyAvgChart').getContext('2d')
+  );
+
+  const createDataset = (label, data, color) => ({
+    label: label,
+    data: data,
+    backgroundColor: color,
+    borderColor: color,
+    fill: false,
+  });
+
+  // 透過AJAX請求獲取數據並更新圖表
+  function getDataAndUpdateCharts() {
+    let dateTime = $('#date').val();
+
+    $.ajax({
+      url: '/api/v1/sensor/hourly-analysis/data',
+      type: 'GET',
+      dataType: 'json',
+      data: { date: dateTime },
+      success: function(result) {
+        updateHourlyChart(hourlySumChart, result.hourlySumDTO);
+        updateHourlyChart(hourlyAvgChart, result.hourlyAverageDTO);
+      },
+      error: function(xhr, status, error) {
+        console.log(error);
+      }
+    });
+  }
+
+  // 更新每小時的圖表
+  function updateHourlyChart(chart, data) {
+    // 更新 x軸 標示 這邊以小時為單位
+    chart.data.labels = data.map(item => `${item.hour}時`);
+
+    // 準備數據
+    const datasets = [
+      createDataset('v1', data.map(item => item.v1), 'rgba(255, 99, 132, 0.2)'),
+      createDataset('v5', data.map(item => item.v5), 'rgba(54, 162, 235, 0.2)'),
+      createDataset('v6', data.map(item => item.v6), 'rgba(255, 206, 86, 0.2)'),
+      createDataset('rh', data.map(item => item.rh), 'rgba(75, 192, 192, 0.2)'),
+      createDataset('tx', data.map(item => item.tx), 'rgba(153, 102, 255, 0.2)'),
+      createDataset('echo', data.map(item => item.echo), 'rgba(255, 159, 64, 0.2)'),
+      createDataset('rain_d', data.map(item => item.rain_d), 'rgba(201, 203, 207, 0.2)'),
+      createDataset('speed', data.map(item => item.speed), 'rgba(100, 100, 255, 0.2)'),
+    ];
+
+    chart.data.datasets = datasets;
+
+    chart.update();
+  }
+
+  $(document).ready(function() {
+    // 初始化日期控件並查詢
+    const today = new Date().toISOString().split('T')[0];
+    $('#date').val(today);
+    getDataAndUpdateCharts();
+  });
+</script>
+</body>
+</html>
