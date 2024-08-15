@@ -67,7 +67,9 @@ public class SensorData implements Serializable {
         if(sensor == null) {
             sensor = new Sensor();
         }
-        if(sensor.getWaterSpeedAquark().getSpeed() != null && sensor.getWaterSpeedAquark().getSpeed() < 0.0) {
+        if(sensor.getWaterSpeedAquark()!= null &&
+           sensor.getWaterSpeedAquark().getSpeed() != null &&
+           sensor.getWaterSpeedAquark().getSpeed() < 0.0) {
             // 轉換成絕對值
             sensor.getWaterSpeedAquark().setSpeed(Math.abs(sensor.getWaterSpeedAquark().getSpeed()));
         }
