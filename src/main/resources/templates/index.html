@@ -79,12 +79,12 @@
 
     //頁面初始化 立刻加載數據
     $(document).ready(function() {
-        fetchMetrics();
+        getMetricsPoint();
     });
 
     const baseUrl = 'http://localhost:8080/actuator/metrics';
 
-    async function fetchMetrics() {
+    async function getMetricsPoint() {
         const cpuResponse = await fetch(baseUrl +'/system.cpu.usage');
         const memoryResponse = await fetch(baseUrl +'/jvm.memory.used');
         const threadsResponse = await fetch(baseUrl + '/jvm.threads.live');
@@ -94,6 +94,11 @@
         const memoryData = await memoryResponse.json();
         const threadsData = await threadsResponse.json();
         const requestsData = await requestsResponse.json();
+
+        console.log('cpuData', cpuData);
+        console.log('memoryData', memoryData);
+        console.log('threadsData', threadsData);
+        console.log('requestsData', requestsData);
 
         updateCPUChart(cpuData);
         updateMemoryChart(memoryData);
@@ -107,7 +112,7 @@
         new Chart(cpuCtx, {
             type: 'doughnut',
             data: {
-                labels: ['CPU 使用率', '空閒狀態'],
+                labels: ['CPU使用率', '空閒狀態'],
                 datasets: [{
                     data: [cpuUsage, 100 - cpuUsage],
                     backgroundColor: ['#ff6384', '#36a2eb'],
@@ -126,7 +131,7 @@
         new Chart(memoryCtx, {
             type: 'bar',
             data: {
-                labels: ['JVM 總記憶體 (MB)'],
+                labels: ['JVM總記憶體(MB)'],
                 datasets: [{
                     data: [memoryUsed],
                     backgroundColor: ['#ffce56'],
@@ -182,7 +187,7 @@
     }
 
     // 定时刷新数据
-    setInterval(fetchMetrics, 5000);
+    setInterval(getMetricsPoint, 5000);
 </script>
 </body>
 </html>
