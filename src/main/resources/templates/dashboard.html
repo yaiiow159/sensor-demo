@@ -31,14 +31,14 @@
           查詢
         </button>
       </div>
-      <canvas id="dailyAverageChart" width="400" height="200"></canvas>
-      <canvas id="dailySumChart" width="400" height="200"></canvas>
-      <canvas id="hourlySumChart" width="400" height="200"></canvas>
-      <canvas id="hourlyAvgChart" width="400" height="200"></canvas>
-      <canvas id="peakOffPeakAvgChart" width="400" height="200"></canvas>
-      <canvas id="peakOffPeakSumChart" width="400" height="200"></canvas>
-      <canvas id="offPeakAvgChart" width="400" height="200"></canvas>
-      <canvas id="offPeakSumChart" width="400" height="200"></canvas>
+      <canvas id="dailyAverageChart" width="400" height="100"></canvas>
+      <canvas id="dailySumChart" width="400" height="100"></canvas>
+      <canvas id="hourlySumChart" width="400" height="100"></canvas>
+      <canvas id="hourlyAvgChart" width="400" height="100"></canvas>
+      <canvas id="peakOffPeakAvgChart" width="400" height="100"></canvas>
+      <canvas id="peakOffPeakSumChart" width="400" height=100></canvas>
+      <canvas id="offPeakAvgChart" width="400" height="100"></canvas>
+      <canvas id="offPeakSumChart" width="400" height="100"></canvas>
     </div>
   </div>
 </div>
@@ -121,7 +121,7 @@
   // 尖峰與離峰時間平均圖表
   const peakOffPeakAvgChart = initializeChart(
           document.getElementById('peakOffPeakAvgChart').getContext('2d'),
-          'doughnut',
+          'bar',
           '尖峰與離峰時段數據',
           ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
           ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)']
@@ -210,10 +210,8 @@
       createDataset('speed', data.map(item => item.speed), 'rgba(100, 100, 255, 0.2)'),
     ];
 
-    // 更新图表的数据集
     chart.data.datasets = datasets;
 
-    // 更新图表
     chart.update();
   }
 

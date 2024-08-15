@@ -7,8 +7,28 @@
         <hr class="border-light">
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
-                <a th:href="@{/api/v1/sensor/dashboard}" class="nav-link text-white">
-                    <i class="fas fa-chart-pie me-2"></i> 儀錶板
+                <a href="#" class="nav-link text-white" th:href="@{/api/v1/sensor/dashboard}">
+                    <i class="fas fa-chart-pie me-2"></i> 監控總攬
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/api/v1/sensor/daily-analysis}" class="nav-link text-white">
+                    <i class="fas fa-calendar-day me-2"></i> 每日分析
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/api/v1/sensor/hourly-analysis}" class="nav-link text-white">
+                    <i class="fas fa-hourglass-half me-2"></i> 每小時分析
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/api/v1/sensor/off-peak-time-analysis}" class="nav-link text-white">
+                    <i class="fas fa-clock me-2"></i> 離峰時段分析
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/api/v1/sensor/peak-time-analysis}" class="nav-link text-white">
+                    <i class="fas fa-hourglass-start me-2"></i> 尖峰時段分析
                 </a>
             </li>
             <li>
@@ -25,5 +45,7 @@
         <hr class="border-light">
     </div>
 </aside>
+
+
 
 
