@@ -14,7 +14,7 @@ java --version
 #### 前端渲染: thymeleaf + html + css + ajax
 #### 消息對列: kafka + zookeeper (單node)
 #### 配置加密  Jasypt 
-#### 監控:    actuator + prometheus
+#### 監控+告警:    actuator + prometheus + alertmanager
 #### 資料庫:  mysql8
 #### 緩存:    redis6
 #### 容器化:  docker-compose 
@@ -75,9 +75,11 @@ docker-compose stop
 
 ![確認個容器運行正常](https://github.com/user-attachments/assets/ae89d273-f1c9-43bf-aa7b-819192fbdb32)
 
-
-- 輸入 <http://localhost:9090>
+- 輸入 <http://localhost:9090> 確認promethues 啟動正常 且配置正確
   ![普羅米修斯](https://github.com/user-attachments/assets/b302b55a-0841-46c5-9098-47553e5ffecd)
+
+- 輸入 <http://localhost:9093> 確認alertmanager 啟動正常 且配置正確
+  ![告警中心](https://github.com/user-attachments/assets/27addb19-a317-43a0-9bc0-edfd494b51a2)
 
 - 確認kafka 運行正常 與zookeeper連線正常 (kafka 需將broker以及各項狀態數據紀錄至zookeeper保存確保附載均衡以及一致性)
 
