@@ -44,11 +44,15 @@ public class RedisCacheClient {
     }
 
     public void setToList(String key, Object value) throws JsonProcessingException {
-        stringRedisTemplate.opsForList().leftPush(key, JsonUtil.serialize(value));
+        stringRedisTemplate.opsForList().leftPushAll(key, JsonUtil.serialize(value));
     }
 
     public void getFromList(String key) {
         stringRedisTemplate.opsForList().leftPop(key);
+    }
+
+    public void getFromList(String key, Long ttlTime, TimeUnit timeUnit) {
+        stringRedisTemplate.opsForList().leftPop(key, ttlTime, timeUnit);
     }
 
     public void setToSet(String key, Object value) throws JsonProcessingException {
@@ -62,7 +66,6 @@ public class RedisCacheClient {
     public String get(String key) {
         return stringRedisTemplate.opsForValue().get(key);
     }
-
     // 設置並且設置過期時間
     public void setWithLogicExpire(String key, Object value, Long ttlTime,TimeUnit timeUnit) throws JsonProcessingException {
         RedisCacheData redisCacheData = new RedisCacheData();

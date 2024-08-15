@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -366,10 +367,10 @@ public class SensorDataServiceImpl implements SensorDataService {
             DailySumDTO dailySumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_DAILY_SUM_KEY + "_" + localDate), DailySumDTO.class);
             DailyAverageDTO dailyAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_DAILY_AVERAGE_KEY + "_" + localDate), DailyAverageDTO.class);
             // 每小時
-            List<HourlySumDTO> hourlySumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_HOURLY_SUM_KEY + "_" + localDate), new TypeReference<List<HourlySumDTO>>() {
-            });
-            List<HourlyAverageDTO> hourlyAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate), new TypeReference<List<HourlyAverageDTO>>() {
-            });
+            List<HourlySumDTO> hourlySumDTO = JsonUtil.streamDeserializeToList(
+                    redisCacheClient.get(REDIS_HOURLY_SUM_KEY + "_" + localDate), HourlySumDTO.class);
+            List<HourlyAverageDTO> hourlyAverageDTO = JsonUtil.streamDeserializeToList(
+                    redisCacheClient.get(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate),HourlyAverageDTO.class);
 
             // 尖峰、離峰
             PeakOffPeakSumDTO peakSumDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_PEAK_SUM_KEY + "_" + localDate), PeakOffPeakSumDTO.class);
@@ -468,7 +469,7 @@ public class SensorDataServiceImpl implements SensorDataService {
             result.put("peakAverageDTO", peakAverageDTO);
             result.put("offPeakSumDTO", offPeakSumDTO);
             result.put("offPeakAverageDTO", offPeakAverageDTO);
-        } catch (JsonProcessingException e) {
+        } catch (IOException e) {
             throw new CaculateException("反序列化時發生異常", e);
         }
         return result;
