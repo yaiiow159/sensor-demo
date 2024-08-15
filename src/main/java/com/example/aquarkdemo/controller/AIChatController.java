@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.ChatClient;
 
+import org.springframework.ai.openai.OpenAiChatClient;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AIChatController {
 
-    private final ChatClient chatClient;
+    private final OpenAiChatClient chatClient;
 
     @GetMapping("/")
     @Operation(summary = "進入AI小助手頁面", description = "進入AI小助手頁面", tags = "查詢")
