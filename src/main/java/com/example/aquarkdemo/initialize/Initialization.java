@@ -61,6 +61,6 @@ public class Initialization {
             log.info("刪除 SensorData 數據....");
             sensorDataRepository.deleteAll();
         }
-        log.info("初始化 SensorData 數據....");
+        log.info("初始化 SensorData 數據完成....");
     }
 }

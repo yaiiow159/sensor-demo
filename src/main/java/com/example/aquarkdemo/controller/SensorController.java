@@ -26,7 +26,7 @@ public class SensorController {
 
     @GetMapping("/")
     @Operation(summary = "進入查詢頁面", description = "進入查詢頁面", tags = "查詢")
-    public String index() {
+    public String query() {
         return "query";
     }
 
