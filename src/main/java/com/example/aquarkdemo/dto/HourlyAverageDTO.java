@@ -5,17 +5,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class HourlyAverageDTO implements Serializable {
-
-    @Schema(name = "hour", description = "小時", example = "1",defaultValue = "0.0")
-    private Integer hour;
+public class HourlyAverageDTO extends BaseHourDTO implements Serializable {
 
     @JsonProperty("v1")
     @Schema(name = "avgV1", description = "鋰電池電壓 V (小時平均)", example = "1.0",defaultValue = "0.0")
@@ -50,7 +49,7 @@ public class HourlyAverageDTO implements Serializable {
     private Double avgHourSpeed;
 
     public HourlyAverageDTO(Integer hour, Double avgV1, Double avgV5, Double avgV6, Double avgRain_d,  Double avgRh, Double avgTx, Double avgEcho, Double avgHourSpeed) {
-        this.hour = hour;
+        super(hour);
         this.avgV1 = avgV1;
         this.avgV5 = avgV5;
         this.avgV6 = avgV6;

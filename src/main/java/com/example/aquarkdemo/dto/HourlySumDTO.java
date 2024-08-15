@@ -4,18 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class HourlySumDTO implements Serializable {
-
-    @JsonProperty("hour")
-    @Schema(name = "hour", description = "小時", example = "1",defaultValue = "12")
-    private Integer hour;
+public class HourlySumDTO extends BaseHourDTO implements Serializable {
 
     @JsonProperty("v1")
     @Schema(name = "sumV1", description = "鋰電池電壓 V (每小時總)", example = "1.0",defaultValue = "0.0")
@@ -50,7 +48,7 @@ public class HourlySumDTO implements Serializable {
     private Double sumSpeed;
 
     public HourlySumDTO(Integer hour,Double sumV1, Double sumV5, Double sumV6, Double sumRainD, Double sumRh, Double sumTx, Double sumEcho, Double sumSpeed) {
-        this.hour = hour;
+        super(hour);
         this.sumV1 = sumV1;
         this.sumV5 = sumV5;
         this.sumV6 = sumV6;
