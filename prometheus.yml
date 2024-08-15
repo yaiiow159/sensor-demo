@@ -7,7 +7,7 @@ scrape_configs:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ['alertmanager:9093']
+        - targets: ['127.0.0.1:9093']
 
 rule_files:
   - 'alert.rules.yml'
