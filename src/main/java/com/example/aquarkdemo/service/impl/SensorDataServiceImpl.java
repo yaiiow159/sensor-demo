@@ -20,14 +20,12 @@ import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -386,11 +384,11 @@ public class SensorDataServiceImpl implements SensorDataService {
                 dailyAverageDTO = sensorDataRepository.findDailyAverages(startTime, endTime);
                 redisCacheClient.set(REDIS_DAILY_AVERAGE_KEY + "_" + localDate, dailyAverageDTO, 60L, TimeUnit.SECONDS);
             }
-            if (hourlySumDTO == null || CollectionUtils.isEmpty(hourlySumDTO)) {
+            if (hourlySumDTO == null || hourlySumDTO.isEmpty()) {
                 hourlySumDTO = sensorDataRepository.findHourlySums(startTime, endTime);
                 redisCacheClient.set(REDIS_HOURLY_SUM_KEY + "_" + localDate, hourlySumDTO, 60L, TimeUnit.SECONDS);
             }
-            if (hourlyAverageDTO == null || CollectionUtils.isEmpty(hourlyAverageDTO)) {
+            if (hourlyAverageDTO == null || hourlyAverageDTO.isEmpty()) {
                 hourlyAverageDTO = sensorDataRepository.findHourlyAverages(startTime, endTime);
                 redisCacheClient.set(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, hourlyAverageDTO, 60L, TimeUnit.SECONDS);
             }
@@ -531,11 +529,11 @@ public class SensorDataServiceImpl implements SensorDataService {
             List<HourlyAverageDTO> hourlyAverageDTO = JsonUtil.deserialize(redisCacheClient.get(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate), new TypeReference<List<HourlyAverageDTO>>() {
             });
 
-            if (hourlySumDTO == null) {
+            if (hourlySumDTO == null || hourlySumDTO.isEmpty()) {
                 hourlySumDTO = sensorDataRepository.findHourlySums(startTime, endTime);
                 redisCacheClient.set(REDIS_HOURLY_SUM_KEY + "_" + localDate, JsonUtil.serialize(hourlySumDTO),1L,TimeUnit.MINUTES);
             }
-            if (hourlyAverageDTO == null) {
+            if (hourlyAverageDTO == null || hourlyAverageDTO.isEmpty()) {
                 hourlyAverageDTO = sensorDataRepository.findHourlyAverages(startTime, endTime);
                 redisCacheClient.set(REDIS_HOURLY_AVERAGE_KEY + "_" + localDate, JsonUtil.serialize(hourlyAverageDTO),1L,TimeUnit.MINUTES);
             }

@@ -1,18 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="zh-TW">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>首頁</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <title>系統監控</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://kit.fontawesome.com/63b39233d0.js" crossorigin="anonymous"></script>
-
     <style>
         .container-fluid {
             padding-left: 0 !important;
         }
-
     </style>
 </head>
 <body>
@@ -22,57 +21,168 @@
         <div class="col-3">
             <div th:insert="sidebar :: sidebar"></div>
         </div>
-        <div class="col-8 pt-5">
-            <h1>資料查詢</h1>
-            <form id="queryForm" th:action="@{/api/v1/sensor/query}" method="POST">
-                <div class="mb-3">
-                    <label for="startDate" class="form-label">起始日期</label>
-                    <input type="date" class="form-control" id="startDate" name="startDate">
+        <main class="col-md-9 ms-sm-auto mt-5 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">系統監控儀表板</h1>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            CPU 使用率
+                        </div>
+                        <div class="card-body">
+                            <canvas id="cpuChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="endDate" class="form-label">結束日期</label>
-                    <input type="date" class="form-control" id="endDate" name="endDate">
+                <div class="col-md-6">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            JVM 内存使用情况
+                        </div>
+                        <div class="card-body">
+                            <canvas id="memoryChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="timePeriod" class="form-label">查詢時段</label>
-                    <select class="form-select" id="timePeriod" name="timePeriod">
-                        <option value="peak">尖峰時段</option>
-                        <option value="off-peak">離峰時段</option>
-                    </select>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            活躍執行緒數
+                        </div>
+                        <div class="card-body">
+                            <canvas id="threadsChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="selectType" class="form-label">加總/平均</label>
-                    <select class="form-select" id="selectType" name="selectType">
-                        <option value="sum">加總</option>
-                        <option value="avg">平均</option>
-                    </select>
+                <div class="col-md-6">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            每秒 HTTP 請求數
+                        </div>
+                        <div class="card-body">
+                            <canvas id="requestsChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="limit" class="form-label">查詢筆數&nbsp;&nbsp;
-                        <font color="red">*默認為10筆</font></label>
-                    <input min="10" type="number" class="form-control" id="limit" name="limit">
-                </div>
-                <div class="mb-3">
-                    <label for="field" class="form-label">查詢欄位</label>
-                    <select class="form-select" id="field" name="field">
-                        <option value="All">All</option>
-                        <option value="v1">Battery Voltage (V1)</option>
-                        <option value="v5">Solar Panel Voltage (V5)</option>
-                        <option value="v6">Solar Panel Voltage (V12)</option>
-                        <option value="tx">Temperature (TX)</option>
-                        <option value="rh">Humidity (RH)</option>
-                        <option value="echo">Water Level (Echo)</option>
-                        <option value="rain_d">Rainfall (Rain_D)</option>
-                        <option value="speed">Surface Flow Speed (Speed)</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary mb-3">查詢</button>
-            </form>
-        </div>
+            </div>
+        </main>
     </div>
 </div>
 
-<script type="text/javascript">
+<script>
+
+    //頁面初始化 立刻加載數據
+    $(document).ready(function() {
+        fetchMetrics();
+    });
+
+    const baseUrl = 'http://localhost:8080/actuator/metrics';
+
+    async function fetchMetrics() {
+        const cpuResponse = await fetch(baseUrl +'/system.cpu.usage');
+        const memoryResponse = await fetch(baseUrl +'/jvm.memory.used');
+        const threadsResponse = await fetch(baseUrl + '/jvm.threads.live');
+        const requestsResponse = await fetch(baseUrl + '/http.server.requests');
+
+        const cpuData = await cpuResponse.json();
+        const memoryData = await memoryResponse.json();
+        const threadsData = await threadsResponse.json();
+        const requestsData = await requestsResponse.json();
+
+        updateCPUChart(cpuData);
+        updateMemoryChart(memoryData);
+        updateThreadsChart(threadsData);
+        updateRequestsChart(requestsData);
+    }
+
+    function updateCPUChart(cpuData) {
+        const cpuUsage = cpuData.measurements[0].value * 100;
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        new Chart(cpuCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['CPU 使用率', '空閒狀態'],
+                datasets: [{
+                    data: [cpuUsage, 100 - cpuUsage],
+                    backgroundColor: ['#ff6384', '#36a2eb'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    }
+
+    function updateMemoryChart(memoryData) {
+        const memoryUsed = memoryData.measurements[0].value / (1024 * 1024);
+        const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+        new Chart(memoryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['JVM 總記憶體 (MB)'],
+                datasets: [{
+                    data: [memoryUsed],
+                    backgroundColor: ['#ffce56'],
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function updateThreadsChart(threadsData) {
+        const liveThreads = threadsData.measurements[0].value;
+        const threadsCtx = document.getElementById('threadsChart').getContext('2d');
+        new Chart(threadsCtx, {
+            type: 'line',
+            data: {
+                labels: ['活躍執行緒數量'],
+                datasets: [{
+                    data: [liveThreads],
+                    backgroundColor: ['#36a2eb'],
+                    fill: false,
+                    borderColor: '#36a2eb'
+                }]
+            },
+            options: {
+                responsive: true,
+            }
+        });
+    }
+
+    function updateRequestsChart(requestsData) {
+        const requestCount = requestsData.measurements[0].value;
+        const requestsCtx = document.getElementById('requestsChart').getContext('2d');
+        new Chart(requestsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['每秒請求次數'],
+                datasets: [{
+                    data: [requestCount],
+                    backgroundColor: ['#ffce56'],
+                }]
+            },
+            options: {
+                responsive: true,
+            }
+        });
+    }
+
+    // 定时刷新数据
+    setInterval(fetchMetrics, 5000);
 </script>
 </body>
 </html>
