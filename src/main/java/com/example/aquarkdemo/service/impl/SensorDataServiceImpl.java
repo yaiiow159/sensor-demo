@@ -468,6 +468,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      * @return Map<String, Object>
      */
     @Override
+    @CountTime
     @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public Map<String, Object> queryHourlyAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
