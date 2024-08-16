@@ -5,7 +5,6 @@ import com.example.aquarkdemo.repository.SensorDataRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +19,7 @@ public class Initialization {
     private final AlertProps alertProps;
 
     @Value("${check.if.delete-data:false}")
-    private boolean deleteData;
+    private boolean isDeleteData;
 
     @PostConstruct
     void init() {
@@ -57,7 +56,7 @@ public class Initialization {
 
     // 初始化資料
     private void initialDataBase() {
-        if(sensorDataRepository.count() > 0 && deleteData) {
+        if(sensorDataRepository.count() > 0 && isDeleteData) {
             log.info("刪除 SensorData 數據....");
             sensorDataRepository.deleteAll();
         }

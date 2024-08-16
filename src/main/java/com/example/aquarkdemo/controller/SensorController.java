@@ -1,6 +1,5 @@
 package com.example.aquarkdemo.controller;
 
-import com.example.aquarkdemo.dto.SensorDataDTO;
 import com.example.aquarkdemo.service.SensorDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -65,13 +65,18 @@ public class SensorController {
     public String getData(@Parameter(description = "日期", example = "2024-08-12", required = true) @RequestParam("startDate") String startDate,
                           @Parameter(description = "日期", example = "2024-08-13", required = true) @RequestParam("endDate") String endDate,
                           @Parameter(description = "時段", example = "peak/offPeak", required = true) @RequestParam("timePeriod") String timePeriod,
-                          @Parameter(description = "選擇類型", example = "sum/avg", required = true) @RequestParam("selectType") String selectType,
                           @Parameter(description = "顯示筆數", example = "10", required = true) @RequestParam("limit") Integer limit,
                           @Parameter(description = "欄位", example = "v1,v5", required = true) @RequestParam("field") String field,Model model) {
-        List<SensorDataDTO> sensorDataDTOList =
-                sensorDataService.queryData(timePeriod, field, startDate, endDate, selectType, limit);
+        List<String> columns = Collections.singletonList(field);
+        Object sensorDataDTOList =
+                sensorDataService.queryData(timePeriod, field, startDate, endDate, limit);
 
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("timePeriod", timePeriod);
+        model.addAttribute("columns", columns);
         model.addAttribute("sensorDataDTOList", sensorDataDTOList);
+
         return "result";
     }
 

@@ -21,7 +21,7 @@ public interface SensorDataService {
 
     void calculateDailyAverages();
 
-    List<SensorDataDTO> queryData(String timePeriod, String field, String startDate, String endDate, String selectType, Integer limit);
+    Object queryData(String timePeriod, String field, String startDate, String endDate, Integer limit);
 
     Map<String, Object> queryDashboardData(String date);
 

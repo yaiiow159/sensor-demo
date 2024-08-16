@@ -1,5 +1,6 @@
 package com.example.aquarkdemo.service.impl;
 
+import com.example.aquarkdemo.aspect.CountTime;
 import com.example.aquarkdemo.checker.PeakOffPeakTimeChecker;
 import com.example.aquarkdemo.dto.*;
 import com.example.aquarkdemo.entity.SensorData;
@@ -20,15 +21,12 @@ import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -74,6 +72,8 @@ public class SensorDataServiceImpl implements SensorDataService {
      * 計算 當天離峰時間段的 平均 並添加到redis cache當中
      */
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public void calculatePeakAndOffPeakAverages() {
 
         // 計算當天的 尖峰時段的加總值 還有平均值 （週一～週三 : 7:30 ~17:30。 週四 週五全天）
@@ -148,6 +148,8 @@ public class SensorDataServiceImpl implements SensorDataService {
      * 計算 每日各項數據總和 並添加到redis cache當中
      */
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public void calculateDailySums() {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalDateTime startTime = yesterday.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -168,6 +170,8 @@ public class SensorDataServiceImpl implements SensorDataService {
      * 計算 每小時各項數據總和 並添加到redis cache當中
      */
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public void calculateHourlyAverages(LocalDateTime startTime, LocalDateTime endTime) {
         // 確保時區正確
         startTime = startTime.atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -185,6 +189,8 @@ public class SensorDataServiceImpl implements SensorDataService {
     }
 
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public void calculateHourlySums(LocalDateTime startTime, LocalDateTime endTime) {
         // 確保時區正確
         startTime = startTime.atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -206,6 +212,8 @@ public class SensorDataServiceImpl implements SensorDataService {
      * 計算 每日各項數據總和 並添加到redis cache當中
      */
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public void calculateDailyAverages() {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalDateTime startTime = yesterday.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -229,134 +237,77 @@ public class SensorDataServiceImpl implements SensorDataService {
      * @param field     資料欄位
      * @param startTime 起始時間(字串)
      * @param endTime   結束時間(字串)
-     * @return List<SensorDataDTO>
+     * @return Object
      */
-    public List<SensorDataDTO> queryData(String queryType, String field, String startTime, String endTime, String selectType, Integer limit) {
-        // 轉換 字串時間 為 LocalDateTime
+    @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    public Object queryData(String queryType, String field, String startTime, String endTime, Integer limit) {
         log.debug("queryData: queryType={}, fields={}, startTime={}, endTime={}", queryType, field, startTime, endTime);
 
-        // 避免前端limit 為null
         if (limit == null || limit == 0) {
             limit = 10;
         }
 
-        LocalDate start = LocalDate.parse(startTime);
-        LocalDate end = LocalDate.parse(endTime);
-        // 確保時區正確
-        start = start.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDate();
-        end = end.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDate();
-
-        // 先嘗試從redis cache獲取資料
-        try {
-            List<SensorDataDTO> list = redisCacheClient.getFromList(REDIS_QUERY_KEY_PREFIX + "_" + start + "_" + end + "_" + queryType + "_" + field + "_" + selectType + "_" + limit, SensorDataDTO.class);
-        } catch (JsonProcessingException e) {
-            log.error("從redis cache獲取數據時發生異常 {}", e.getMessage());
+        // 從redis 獲取
+        Object list = redisCacheClient.get(REDIS_QUERY_KEY_PREFIX + queryType + "_" + field + "_" + startTime + "-" + endTime);
+        if (list != null) {
+            return list;
         }
 
+        LocalDateTime start =LocalDate.parse(startTime).atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+        LocalDateTime end = LocalDate.parse(endTime).atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<SensorDataDTO> query = cb.createQuery(SensorDataDTO.class);
+        CriteriaQuery<Object> query = cb.createQuery(Object.class);
         Root<SensorData> root = query.from(SensorData.class);
 
         List<Predicate> predicates = new ArrayList<>();
+
         predicates.add(cb.between(root.get("obsTime"), start, end));
 
         // 動態添加查詢條件 (尖峰、離峰)
-        switch (queryType) {
-            case TIME_PERIOD_PEAK:
-                predicates.add(cb.or(
-                        cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), 5),
-                                cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), 6)),
-                        cb.and(cb.greaterThanOrEqualTo(cb.function("HOUR", Integer.class, root.get("obsTime")), 7),
-                                cb.lessThanOrEqualTo(cb.function("HOUR", Integer.class, root.get("obsTime")), 17))
-                ));
-                break;
-            case TIME_PERIOD_OFF_PEAK:
-                predicates.add(cb.or(
-                        cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), 1),
-                        cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), 7),
-                        cb.or(cb.lessThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 7),
-                                cb.greaterThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 17))
-                ));
-                break;
+        if (TIME_PERIOD_PEAK.equals(queryType)) {
+            predicates.add(cb.or(
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.MONDAY),
+                            cb.between(cb.function("HOUR", Integer.class, root.get("obsTime")), 7, 17)),
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.TUESDAY),
+                            cb.between(cb.function("HOUR", Integer.class, root.get("obsTime")), 7, 17)),
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.WEDNESDAY),
+                            cb.between(cb.function("HOUR", Integer.class, root.get("obsTime")), 7, 17)),
+                    cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.THURSDAY),
+                    cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.FRIDAY)
+            ));
+        } else if (TIME_PERIOD_OFF_PEAK.equals(queryType)) {
+            predicates.add(cb.or(
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.MONDAY),
+                            cb.lessThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 7)),
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.MONDAY),
+                            cb.greaterThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 17)),
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.TUESDAY),
+                            cb.lessThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 7)),
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.TUESDAY),
+                            cb.greaterThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 17)),
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.WEDNESDAY),
+                            cb.lessThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 7)),
+                    cb.and(cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.WEDNESDAY),
+                            cb.greaterThan(cb.function("HOUR", Integer.class, root.get("obsTime")), 17)),
+                    cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.SATURDAY),
+                    cb.equal(cb.function("DAYOFWEEK", Integer.class, root.get("obsTime")), Calendar.SUNDAY)
+            ));
         }
 
-        // 創建一個 List 來動態構建選擇部分
         List<Selection<?>> selections = new ArrayList<>();
-
-        // 根據 selectType 決定是加總還是平均
-        switch (field) {
-            case SENSOR_ALL_FIELD:
-                if (SELECT_TYPE_SUM.equals(selectType)) {
-                    selections.add(cb.sum(root.get("sensor").get("volt").get("v1")));
-                    selections.add(cb.sum(root.get("sensor").get("volt").get("v5")));
-                    selections.add(cb.sum(root.get("sensor").get("volt").get("v6")));
-                    selections.add(cb.sum(root.get("sensor").get("stickTxRh").get("tx")));
-                    selections.add(cb.sum(root.get("sensor").get("stickTxRh").get("rh")));
-                    selections.add(cb.sum(root.get("sensor").get("ultrasonicLevel").get("echo")));
-                    selections.add(cb.sum(root.get("sensor").get("waterSpeedAquark").get("speed")));
-                    selections.add(cb.sum(root.get("rainD")));
-                } else if (SELECT_TYPE_AVG.equals(selectType)) {
-                    selections.add(cb.avg(root.get("sensor").get("volt").get("v1")));
-                    selections.add(cb.avg(root.get("sensor").get("volt").get("v5")));
-                    selections.add(cb.avg(root.get("sensor").get("volt").get("v6")));
-                    selections.add(cb.avg(root.get("sensor").get("stickTxRh").get("tx")));
-                    selections.add(cb.avg(root.get("sensor").get("stickTxRh").get("rh")));
-                    selections.add(cb.avg(root.get("sensor").get("ultrasonicLevel").get("echo")));
-                    selections.add(cb.avg(root.get("sensor").get("waterSpeedAquark").get("speed")));
-                    selections.add(cb.avg(root.get("rainD")));
-                }
-                break;
-            case SENSOR_FIELD_NAME_V1:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("sensor").get("volt").get("v1")) : cb.avg(root.get("sensor").get("volt").get("v1")));
-                break;
-            case SENSOR_FIELD_NAME_V5:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("sensor").get("volt").get("v5")) : cb.avg(root.get("sensor").get("volt").get("v5")));
-                break;
-            case SENSOR_FIELD_NAME_V6:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("sensor").get("volt").get("v6")) : cb.avg(root.get("sensor").get("volt").get("v6")));
-                break;
-            case SENSOR_FIELD_NAME_TX:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("sensor").get("stickTxRh").get("tx")) : cb.avg(root.get("sensor").get("stickTxRh").get("tx")));
-                break;
-            case SENSOR_FIELD_NAME_RH:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("sensor").get("stickTxRh").get("rh")) : cb.avg(root.get("sensor").get("stickTxRh").get("rh")));
-                break;
-            case SENSOR_FIELD_NAME_ECHO:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("sensor").get("ultrasonicLevel").get("echo")) : cb.avg(root.get("sensor").get("ultrasonicLevel").get("echo")));
-                break;
-            case SENSOR_FIELD_NAME_SPEED:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("sensor").get("waterSpeedAquark").get("speed")) : cb.avg(root.get("sensor").get("waterSpeedAquark").get("speed")));
-                break;
-            case SENSOR_FIELD_NAME_RAIN_D:
-                selections.add(SELECT_TYPE_SUM.equals(selectType) ? cb.sum(root.get("rainD")) : cb.avg(root.get("rainD")));
-                break;
-            default:
-                throw new IllegalArgumentException("不支持的查詢欄位: " + field);
-        }
-
+        addFieldSelections(field,cb,root,selections);
 
         query.multiselect(selections);
-        // 構建查詢選擇的欄位
-        query.select(cb.construct(
-                SensorDataDTO.class,
-                root.get("obsTime"),
-                root.get("sensor").get("volt").get("v1"),
-                root.get("sensor").get("volt").get("v5"),
-                root.get("sensor").get("volt").get("v6"),
-                root.get("rainD"),
-                root.get("sensor").get("stickTxRh").get("tx"),
-                root.get("sensor").get("stickTxRh").get("rh"),
-                root.get("sensor").get("ultrasonicLevel").get("echo"),
-                root.get("sensor").get("waterSpeedAquark").get("speed")
-        ));
-
         query.where(predicates.toArray(new Predicate[0]));
         query.orderBy(cb.desc(root.get("obsTime")));
+
         try {
-            final String redisKey = REDIS_QUERY_KEY_PREFIX + queryType + "_" + selectType + "_" + field + "_" + start + "_" + end;
-            // 先存取資料 如果之後一樣的數據從redis 獲取
-            List<SensorDataDTO> resultList = entityManager.createQuery(query).setMaxResults(limit).getResultList();
-            redisCacheClient.setToList(redisKey, resultList, 60L, TimeUnit.SECONDS);
+            String redisKey = REDIS_QUERY_KEY_PREFIX + queryType + "_" + field + "_" + startTime + "-" + endTime;
+            Object resultList = entityManager.createQuery(query).setMaxResults(limit).getResultList();
+            redisCacheClient.set(redisKey, resultList, 60L, TimeUnit.SECONDS);
             return resultList;
         } catch (NoResultException | JsonProcessingException e) {
             return Collections.emptyList();
@@ -370,6 +321,8 @@ public class SensorDataServiceImpl implements SensorDataService {
      * @return Map<String, Object>
      */
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public Map<String, Object> queryDashboardData(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -475,6 +428,8 @@ public class SensorDataServiceImpl implements SensorDataService {
      * @return Map<String, Object>
      */
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public Map<String, Object> queryDailyAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -513,6 +468,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      * @return Map<String, Object>
      */
     @Override
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public Map<String, Object> queryHourlyAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -546,6 +502,8 @@ public class SensorDataServiceImpl implements SensorDataService {
     }
 
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public Map<String, Object> queryOffPeakAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -608,6 +566,8 @@ public class SensorDataServiceImpl implements SensorDataService {
     }
 
     @Override
+    @CountTime
+    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
     public Map<String, Object> queryPeakAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -696,5 +656,47 @@ public class SensorDataServiceImpl implements SensorDataService {
     private void cacheDataToList(String key, List<?> data) throws JsonProcessingException {
         redisCacheClient.setToList(key, data, 1L, TimeUnit.MINUTES);
     }
+
+    private void addFieldSelections(String field, CriteriaBuilder cb, Root<SensorData> root, List<Selection<?>> selections) {
+        switch (field) {
+            case SENSOR_ALL_FIELD:
+                selections.add(root.get("sensor").get("volt").get("v1"));
+                selections.add(root.get("sensor").get("volt").get("v5"));
+                selections.add(root.get("sensor").get("volt").get("v6"));
+                selections.add(root.get("sensor").get("stickTxRh").get("tx"));
+                selections.add(root.get("sensor").get("stickTxRh").get("rh"));
+                selections.add(root.get("sensor").get("ultrasonicLevel").get("echo"));
+                selections.add(root.get("sensor").get("waterSpeedAquark").get("speed"));
+                selections.add(root.get("rainD"));
+                break;
+            case SENSOR_FIELD_NAME_V1:
+                selections.add(root.get("sensor").get("volt").get("v1"));
+                break;
+            case SENSOR_FIELD_NAME_V5:
+                selections.add(root.get("sensor").get("volt").get("v5"));
+                break;
+            case SENSOR_FIELD_NAME_V6:
+                selections.add(root.get("sensor").get("volt").get("v6"));
+                break;
+            case SENSOR_FIELD_NAME_TX:
+                selections.add(root.get("sensor").get("stickTxRh").get("tx"));
+                break;
+            case SENSOR_FIELD_NAME_RH:
+                selections.add(root.get("sensor").get("stickTxRh").get("rh"));
+                break;
+            case SENSOR_FIELD_NAME_ECHO:
+                selections.add(root.get("sensor").get("ultrasonicLevel").get("echo"));
+                break;
+            case SENSOR_FIELD_NAME_SPEED:
+                selections.add(root.get("sensor").get("waterSpeedAquark").get("speed"));
+                break;
+            case SENSOR_FIELD_NAME_RAIN_D:
+                selections.add(root.get("rainD"));
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的查詢欄位: " + field);
+        }
+    }
+
 
 }
