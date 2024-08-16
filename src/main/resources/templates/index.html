@@ -12,6 +12,10 @@
         .container-fluid {
             padding-left: 0 !important;
         }
+        .chart-canvas {
+            width: 100%;
+            height: 100px;
+        }
     </style>
 </head>
 <body>
@@ -43,7 +47,7 @@
                             JVM 記憶體使用情况
                         </div>
                         <div class="card-body">
-                            <canvas id="memoryChart"></canvas>
+                            <canvas id="memoryChart" class="chart-canvas"></canvas>
                         </div>
                     </div>
                 </div>
@@ -56,7 +60,7 @@
                             活躍執行緒數
                         </div>
                         <div class="card-body">
-                            <canvas id="threadsChart"></canvas>
+                            <canvas id="threadsChart" class="chart-canvas"></canvas>
                         </div>
                     </div>
                 </div>
@@ -66,7 +70,7 @@
                             每秒 HTTP 請求數
                         </div>
                         <div class="card-body">
-                            <canvas id="requestsChart"></canvas>
+                            <canvas id="requestsChart" class="chart-canvas"></canvas>
                         </div>
                     </div>
                 </div>
@@ -152,14 +156,13 @@
         const liveThreads = threadsData.measurements[0].value;
         const threadsCtx = document.getElementById('threadsChart').getContext('2d');
         new Chart(threadsCtx, {
-            type: 'line',
+            type: 'pie',  // 改成 'pie' 來顯示餅圖
             data: {
                 labels: ['活躍執行緒數量'],
                 datasets: [{
-                    data: [liveThreads],
-                    backgroundColor: ['#36a2eb'],
-                    fill: false,
-                    borderColor: '#36a2eb'
+                    data: [liveThreads, 100 - liveThreads],
+                    backgroundColor: ['#36a2eb', '#ff6384'],
+                    hoverBackgroundColor: ['#36a2eb', '#ff6384']
                 }]
             },
             options: {
@@ -172,12 +175,12 @@
         const requestCount = requestsData.measurements[0].value;
         const requestsCtx = document.getElementById('requestsChart').getContext('2d');
         new Chart(requestsCtx, {
-            type: 'doughnut',
+            type: 'bar',
             data: {
                 labels: ['每秒請求次數'],
                 datasets: [{
                     data: [requestCount],
-                    backgroundColor: ['#ffce56'],
+                    backgroundColor: ['#ff6384'],
                 }]
             },
             options: {
@@ -185,7 +188,19 @@
             }
         });
     }
-    setInterval(getMetricsPoint, 5000);
+
+    function destroyChart() {
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        cpuCtx.destroy();
+        const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+        memoryCtx.destroy();
+        const threadsCtx = document.getElementById('threadsChart').getContext('2d');
+        threadsCtx.destroy();
+        const requestsCtx = document.getElementById('requestsChart').getContext('2d');
+        requestsCtx.destroy();
+    }
+
+    setInterval(function () {destroyChart(); getMetricsPoint();}, 5000);
 </script>
 </body>
 </html>

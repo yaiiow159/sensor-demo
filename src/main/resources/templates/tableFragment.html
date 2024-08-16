@@ -6,36 +6,50 @@
 </head>
 <body>
 <div th:fragment="sensorDataTable">
+
+  <h2>查詢結果</h2>
+  <p>查詢日期: <span th:text="${startDate} + ' ~ ' + ${endDate}"></span></p>
+  <p>資料筆數: <span th:text="${sensorDataDTOList.size()}"></span></p>
+  <p>查詢時段: <span th:text="${timePeriod}"></span></p>
+
   <table class="table table-header table-hover">
     <thead class="table-dark">
     <tr>
-      <th>時間</th>
-      <th>時刻</th>
-      <th>鋰電池電壓 (V1)</th>
-      <th>太陽能板1電壓 (V5)</th>
-      <th>太陽能板2電壓 (V6)</th>
-      <th>雨量 (Rain_D)</th>
-      <th>濕度 (RH)</th>
-      <th>溫度 (TX)</th>
-      <th>水位空高 (Echo)</th>
-      <th>表面流速 (Speed)</th>
+      <!-- 根據選擇的欄位動態顯示表頭 -->
+      <th th:if="${columns.contains('v1') || columns.contains('All')}" th:text="'鋰電池電壓 (V1)'"></th>
+      <th th:if="${columns.contains('v5') || columns.contains('All')}" th:text="'太陽能板1電壓 (V5)'"></th>
+      <th th:if="${columns.contains('v6') || columns.contains('All')}" th:text="'太陽能板2電壓 (V6)'"></th>
+      <th th:if="${columns.contains('tx') || columns.contains('All')}" th:text="'溫度 (TX)'"></th>
+      <th th:if="${columns.contains('rh') || columns.contains('All')}" th:text="'濕度 (RH)'"></th>
+      <th th:if="${columns.contains('echo') || columns.contains('All')}" th:text="'水位空高 (Echo)'"></th>
+      <th th:if="${columns.contains('rain_d') || columns.contains('All')}" th:text="'雨量 (Rain_D)'"></th>
+      <th th:if="${columns.contains('speed') || columns.contains('All')}" th:text="'表面流速 (Speed)'"></th>
     </tr>
     </thead>
     <tbody>
-    <tr th:each="data : ${sensorDataDTOList}">
-      <td th:text="${data.obsTime}"></td>
-      <td th:text="${data.hour}"></td>
-      <td th:text="${data.v1}"></td>
-      <td th:text="${data.v5}"></td>
-      <td th:text="${data.v6}"></td>
-      <td th:text="${data.rainD}"></td>
-      <td th:text="${data.rh}"></td>
-      <td th:text="${data.tx}"></td>
-      <td th:text="${data.echo}"></td>
-      <td th:text="${data.speed}"></td>
+    <tr th:if="${sensorDataDTOList == null || sensorDataDTOList.isEmpty()}">
+      <td colspan="9">查無資料</td>
     </tr>
+
+    <tr th:if="${!columns.contains('All') }" th:each="value : ${sensorDataDTOList}">
+      <td th:text="${value}"></td>
+    </tr>
+
+    <tr th:if="${ columns.contains('All') }" th:each="dataArray : ${sensorDataDTOList}">
+      <td  th:text="${dataArray[0]}"></td>
+      <td  th:text="${dataArray[1]}"></td>
+      <td  th:text="${dataArray[2]}"></td>
+      <td  th:text="${dataArray[3]}"></td>
+      <td  th:text="${dataArray[4]}"></td>
+      <td  th:text="${dataArray[5]}"></td>
+      <td  th:text="${dataArray[6]}"></td>
+      <td  th:text="${dataArray[7]}"></td>
+    </tr>
+
     </tbody>
   </table>
+
+  <a th:href="@{/api/v1/sensor/}" class="btn btn-primary">返回</a>
 </div>
 </body>
 </html>
