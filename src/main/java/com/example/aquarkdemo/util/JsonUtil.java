@@ -37,6 +37,7 @@ public class JsonUtil {
 
     /**
      * 序列化成 json
+     *
      * @param obj 序列化的物件
      * @return json
      * @throws JsonProcessingException
@@ -47,13 +48,14 @@ public class JsonUtil {
 
     /**
      * 反序列化
-     * @param json json
+     *
+     * @param json  json
      * @param clazz 反序列化後的物件類型
      * @return 反序列化後的物件
      * @throws JsonProcessingException
      */
     public static <T> T deserialize(String json, final Class<T> clazz) throws JsonProcessingException {
-        if(validateJson(json)) {
+        if (validateJson(json)) {
             return null;
         }
         if (json.startsWith("\"") && json.endsWith("\"")) {
@@ -66,13 +68,14 @@ public class JsonUtil {
 
     /**
      * 反序列化
-     * @param json json
+     *
+     * @param json          json
      * @param typeReference 反序列化後的物件類型
      * @return 反序列化後的物件
      * @throws JsonProcessingException
      */
     public static <T> T deserialize(String json, final TypeReference<T> typeReference) throws JsonProcessingException {
-        if(validateJson(json)) {
+        if (validateJson(json)) {
             return null;
         }
         if (json.startsWith("\"") && json.endsWith("\"")) {
@@ -85,21 +88,22 @@ public class JsonUtil {
 
     /**
      * 使用 Stream 反序列化
-     * @param json json字串
+     *
+     * @param json  json字串
      * @param clazz 反序列化後的物件類型
+     * @param <T>   泛型
      * @return 反序列化後的物件
-     * @param <T> 泛型
      * @throws IOException
      */
     public static <T> List<T> streamDeserializeToList(String json, final Class<T> clazz) throws IOException {
-        if(validateJson(json)) {
+        if (validateJson(json)) {
             return null;
         }
         List<T> list = new LinkedList<>();
         JsonFactory jsonFactory = getInstance().getFactory();
         try (JsonParser jsonParser = jsonFactory.createParser(json)) {
 
-            if(jsonParser.nextToken() != JsonToken.END_ARRAY) {
+            if (jsonParser.nextToken() != JsonToken.END_ARRAY) {
                 throw new IllegalArgumentException("JSON 格式錯誤 JSON : " + json);
             }
             while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
@@ -112,19 +116,20 @@ public class JsonUtil {
 
     /**
      * 使用 Stream 反序列化
-     * @param json json字串
+     *
+     * @param json  json字串
      * @param clazz 反序列化後的物件類型
+     * @param <T>   泛型
      * @return 反序列化後的物件
-     * @param <T> 泛型
      * @throws IOException
      */
     public static <T> T streamDeserialize(String json, final Class<T> clazz) throws IOException {
-        if(validateJson(json)) {
+        if (validateJson(json)) {
             return null;
         }
         JsonFactory jsonFactory = getInstance().getFactory();
         try (JsonParser jsonParser = jsonFactory.createParser(json)) {
-            if(jsonParser.nextToken() != JsonToken.END_OBJECT) {
+            if (jsonParser.nextToken() != JsonToken.END_OBJECT) {
                 throw new IllegalArgumentException("JSON 格式錯誤 JSON : " + json);
             }
             while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
@@ -137,14 +142,15 @@ public class JsonUtil {
 
     /**
      * 使用 Stream 反序列化
-     * @param json json字串
+     *
+     * @param json          json字串
      * @param typeReference 反序列化後的物件類型
+     * @param <T>           泛型
      * @return 反序列化後的物件
-     * @param <T> 泛型
      * @throws IOException
      */
     public static <T> T streamDeserialize(String json, final TypeReference<T> typeReference) throws IOException {
-        if(validateJson(json)) {
+        if (validateJson(json)) {
             return null;
         }
         JsonFactory jsonFactory = getInstance().getFactory();
@@ -162,21 +168,22 @@ public class JsonUtil {
 
     /**
      * 使用 Stream 反序列化
-     * @param json json字串
+     *
+     * @param json          json字串
      * @param typeReference 反序列化後的物件類型
+     * @param <T>           泛型
      * @return 反序列化後的物件
-     * @param <T> 泛型
      * @throws IOException
      */
     public static <T> List<T> streamDeserializeToList(String json, final TypeReference<T> typeReference) throws IOException {
-        if(validateJson(json)) {
+        if (validateJson(json)) {
             return null;
         }
         List<T> list = new LinkedList<>();
         JsonFactory jsonFactory = getInstance().getFactory();
         try (JsonParser jsonParser = jsonFactory.createParser(json)) {
 
-            if(jsonParser.nextToken() != JsonToken.END_ARRAY) {
+            if (jsonParser.nextToken() != JsonToken.END_ARRAY) {
                 throw new IllegalArgumentException("JSON 格式錯誤 JSON : " + json);
             }
             while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
@@ -188,9 +195,9 @@ public class JsonUtil {
     }
 
 
-
     /**
      * 取得 ObjectMapper 實例
+     *
      * @return ObjectMapper
      */
     private static ObjectMapper getObjectMapperInstance() {
