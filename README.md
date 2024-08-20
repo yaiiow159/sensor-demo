@@ -99,14 +99,16 @@ docker-compose stop
    ![儀錶板總攬](https://github.com/user-attachments/assets/775023be-1d86-4fee-83cf-41e1c4afb33d)
    ![美日分析](https://github.com/user-attachments/assets/bfe503e7-a023-4e71-b337-7ebb7d46a936)
    ![每小時分析](https://github.com/user-attachments/assets/178b5d04-b9e9-4edd-85d2-bc1f486b6291)
-   ![離峰時段分析](https://github.com/user-attachments/assets/308af930-25b1-4ea9-b1af-861e29564e54)
+   ![離峰時段分析](https://github.com/user-attachments/assets/133c23c8-98be-41b3-a33c-71591cc07b97)
    ![尖峰時段分析](https://github.com/user-attachments/assets/0515db11-c09d-4f92-92b8-b04d2792c2d9)
 
    > **注意** 該功能尚在開發中 點及提交會跳出警示顯示
-   
+   ![AI功能測試](https://github.com/user-attachments/assets/a8244efa-212f-4465-a115-23b9fd6e4771)
+
 
    > **注意** AI的API_KEY可自行在application.properties當中設置程自己的金鑰
-   ![系統監控](https://github.com/user-attachments/assets/2e33a23c-d569-42dd-800f-7635a424a4f3)
+   ![系統監控](https://github.com/user-attachments/assets/3a8289d1-fcc0-4a3e-90af-fac0884154ae)
+
 
    
    
