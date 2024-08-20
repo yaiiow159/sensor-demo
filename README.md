@@ -12,12 +12,13 @@ java --version
 ~~~
 #### 後端 :   springboot3
 #### 前端渲染: thymeleaf + html + css + ajax
-#### 消息對列: kafka + zookeeper (單node)
+#### 消息對列: kafka + zookeeper (單一broker)
 #### 配置加密  Jasypt 
 #### 監控+告警:    actuator + prometheus + alertmanager
 #### 資料庫:  mysql8
 #### 緩存:    redis6
 #### 容器化:  docker-compose 
+#### AI相關: Ollama + qwen2:1.5b模型
 
 目前第二版待修正問題
 
@@ -102,7 +103,8 @@ docker-compose stop
    ![尖峰時段分析](https://github.com/user-attachments/assets/0515db11-c09d-4f92-92b8-b04d2792c2d9)
 
    > **注意** 該功能尚在開發中 點及提交會跳出警示顯示
-   ![AI小幫手](https://github.com/user-attachments/assets/a849239d-3bca-471c-b8d6-e6b4bda1e12f)
+   
+
    > **注意** AI的API_KEY可自行在application.properties當中設置程自己的金鑰
    ![系統監控](https://github.com/user-attachments/assets/2e33a23c-d569-42dd-800f-7635a424a4f3)
 
