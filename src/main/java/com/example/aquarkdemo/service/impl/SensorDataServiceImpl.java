@@ -73,7 +73,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public void calculatePeakAndOffPeakAverages() {
 
         // 計算當天的 尖峰時段的加總值 還有平均值 （週一～週三 : 7:30 ~17:30。 週四 週五全天）
@@ -149,7 +149,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public void calculateDailySums() {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalDateTime startTime = yesterday.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -171,7 +171,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public void calculateHourlyAverages(LocalDateTime startTime, LocalDateTime endTime) {
         // 確保時區正確
         startTime = startTime.atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -213,7 +213,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public void calculateDailyAverages() {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalDateTime startTime = yesterday.atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -241,7 +241,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public Object queryData(String queryType, String field, String startTime, String endTime, Integer limit) {
         log.debug("queryData: queryType={}, fields={}, startTime={}, endTime={}", queryType, field, startTime, endTime);
 
@@ -322,7 +322,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public Map<String, Object> queryDashboardData(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -429,7 +429,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public Map<String, Object> queryDailyAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -469,7 +469,7 @@ public class SensorDataServiceImpl implements SensorDataService {
      */
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public Map<String, Object> queryHourlyAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -504,7 +504,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public Map<String, Object> queryOffPeakAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();
@@ -568,7 +568,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public Map<String, Object> queryPeakAnalysis(String date) {
         LocalDate localDate = LocalDate.parse(date);
         HashMap<String, Object> result = new HashMap<>();

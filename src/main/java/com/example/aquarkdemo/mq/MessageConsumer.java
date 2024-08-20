@@ -42,9 +42,7 @@ public class MessageConsumer {
     private final JavaMailSender javaMailSender;
     private final SensorDataRepository sensorDataRepository;
     private final AlertProps alertProps;
-
     private final ThreadPoolExecutor threadPoolExecutor;
-
     private static final String sendMailUser = "S5xkx@example.com";
 
     @Value("${spring.mail.username}")
