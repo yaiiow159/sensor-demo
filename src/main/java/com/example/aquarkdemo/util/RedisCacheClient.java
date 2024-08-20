@@ -48,6 +48,9 @@ public class RedisCacheClient {
 
 
     public void setToList(String key, List<?> list) throws JsonProcessingException {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
         List<String> serializedList = new LinkedList<>();
         for (Object obj : list) {
             serializedList.add(JsonUtil.serialize(obj));
@@ -56,6 +59,9 @@ public class RedisCacheClient {
     }
 
     public void setToList(String key, List<?> list, Long timeout, TimeUnit unit) throws JsonProcessingException {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
         List<String> serializedList = new LinkedList<>();
         for (Object obj : list) {
             serializedList.add(JsonUtil.serialize(obj));

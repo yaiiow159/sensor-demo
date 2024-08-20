@@ -8,10 +8,11 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    restart: on-failure
     ports:
       - "2181:2181"
     healthcheck:
-      test: [ "CMD", "zk-shell", "127.0.0.1:2181", "ruok" ]
+      test: [ "CMD", "zk-shell", "localhost:2181", "ruok" ]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -51,7 +52,7 @@ services:
     volumes:
       - ./kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: [ "CMD", "kafka-topics.sh", "--bootstrap-server", "kafka:9093", "--list" ]
+      test: [ "CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list" ]
       interval: 10s
       timeout: 5s
       retries: 3

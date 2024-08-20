@@ -22,10 +22,10 @@
 <div th:insert="header :: header"></div>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-3">
+        <div class="col-3 w-40">
             <div th:insert="sidebar :: sidebar"></div>
         </div>
-        <main class="col-md-9 ms-sm-auto mt-5 px-md-4">
+        <main class="col-md-9 ms-sm-auto mt-5 px-md-4 w-80">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">系統監控儀表板</h1>
             </div>
@@ -70,7 +70,7 @@
                             每秒 HTTP 請求數
                         </div>
                         <div class="card-body">
-                            <canvas id="requestsChart" class="chart-canvas"></canvas>
+                            <canvas id="requestsChart" class="chart-canvas h-25"></canvas>
                         </div>
                     </div>
                 </div>
@@ -189,18 +189,76 @@
         });
     }
 
-    function destroyChart() {
+    function recreateChart() {
         const cpuCtx = document.getElementById('cpuChart').getContext('2d');
-        cpuCtx.destroy();
+        new Chart(cpuCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['CPU使用率', '空閒狀態'],
+                datasets: [{
+                    data: [0, 100],
+                    backgroundColor: ['#ff6384', '#36a2eb'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+
         const memoryCtx = document.getElementById('memoryChart').getContext('2d');
-        memoryCtx.destroy();
+        new Chart(memoryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['JVM總記憶體(MB)'],
+                datasets: [{
+                    data: [0],
+                    backgroundColor: ['#ffce56'],
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
         const threadsCtx = document.getElementById('threadsChart').getContext('2d');
-        threadsCtx.destroy();
+        new Chart(threadsCtx, {
+            type: 'pie',  // 改成 'pie' 來顯示餅圖
+            data: {
+                labels: ['活躍執行緒數量'],
+                datasets: [{
+                    data: [0, 100],
+                    backgroundColor: ['#36a2eb', '#ff6384'],
+                    hoverBackgroundColor: ['#36a2eb', '#ff6384']
+                }]
+            },
+            options: {
+                responsive: true,
+            }
+        });
+
         const requestsCtx = document.getElementById('requestsChart').getContext('2d');
-        requestsCtx.destroy();
+        new Chart(requestsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['每秒請求次數'],
+                datasets: [{
+                    data: [0],
+                    backgroundColor: ['#ff6384'],
+                }]
+            },
+            options: {
+                responsive: true,
+            }
+        });
     }
 
-    setInterval(function () {destroyChart(); getMetricsPoint();}, 5000);
+    setInterval(function () {recreateChart(); getMetricsPoint();}, 5000);
 </script>
 </body>
 </html>
