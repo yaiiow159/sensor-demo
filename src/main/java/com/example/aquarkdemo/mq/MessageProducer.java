@@ -5,13 +5,17 @@ import com.example.aquarkdemo.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+
+/**
+ * @author Timmy
+ *
+ * 生產者處理
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

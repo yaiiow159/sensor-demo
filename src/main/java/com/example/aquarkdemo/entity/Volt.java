@@ -7,6 +7,12 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
+/**
+ * @author Timmy
+ *
+ * Volt實體類
+ */
+@Schema(name = "Volt", description = "Volt實體類")
 @Getter
 @Embeddable
 public class Volt implements Serializable {

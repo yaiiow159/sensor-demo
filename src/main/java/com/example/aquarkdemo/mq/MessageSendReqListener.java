@@ -8,6 +8,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+
+/**
+ * @author Timmy
+ *
+ * 生產者監聽
+ */
 @Slf4j
 @Component
 public class MessageSendReqListener implements ProducerListener {

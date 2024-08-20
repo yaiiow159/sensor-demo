@@ -17,6 +17,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Objects;
 
+/**
+ * @author Timmy
+ *
+ * 感應器資料實體類
+ */
 @Getter
 @Entity
 @Table(name = "sensor_data", indexes = {
@@ -41,7 +46,7 @@ public class SensorData implements Serializable {
 
     @Column(name = "obs_time", nullable = false)
     @JsonProperty("obs_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "Asia/Taipei")
     private LocalDateTime obsTime;
 
     @Column(name = "rain_d", nullable = false)

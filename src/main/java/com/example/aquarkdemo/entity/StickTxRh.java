@@ -7,6 +7,12 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
+/**
+ * @author Timmy
+ *
+ * StickTxRh實體類
+ */
+@Schema(name = "StickTxRh", description = "StickTxRh實體類")
 @Getter
 @Embeddable
 public class StickTxRh implements Serializable {

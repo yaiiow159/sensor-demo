@@ -9,6 +9,11 @@ import lombok.Setter;
 
 import java.io.Serializable;
 
+/**
+ * @author Timmy
+ *
+ * 感應器實體類 (一部分)
+ */
 @Embeddable
 @AllArgsConstructor
 @Getter

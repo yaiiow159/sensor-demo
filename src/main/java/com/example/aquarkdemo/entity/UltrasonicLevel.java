@@ -6,6 +6,12 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
+/**
+ * @author Timmy
+ *
+ * UltrasonicLevel實體類
+ */
+@Schema(name = "UltrasonicLevel", description = "UltrasonicLevel實體類")
 @Getter
 @Embeddable
 public class UltrasonicLevel implements Serializable {

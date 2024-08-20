@@ -33,6 +33,17 @@ services:
       timeout: 5s
       retries: 3
 
+  redis_exporter:
+    container_name: redis_exporter
+    image: oliver006/redis_exporter:v1.35.0
+    environment:
+      REDIS_ADDR: "redis:6379"
+    ports:
+      - "9121:9121"
+    restart: always
+    depends_on:
+      - redis
+
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:7.2.1

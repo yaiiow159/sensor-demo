@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 
 import static com.example.aquarkdemo.constant.CommonConstant.DEFAULT_ALERT_VALUE;
 
+/**
+ * 初始化數據
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

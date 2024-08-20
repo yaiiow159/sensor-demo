@@ -8,6 +8,12 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
+/**
+ * @author Timmy
+ *
+ * WaterSpeedAquark實體類
+ */
+@Schema(name = "WaterSpeedAquark", description = "WaterSpeedAquark實體類")
 @Getter
 @Embeddable
 public class WaterSpeedAquark implements Serializable {

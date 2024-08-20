@@ -35,6 +35,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import static com.example.aquarkdemo.constant.CommonConstant.BATCH_SIZE;
 import static com.example.aquarkdemo.constant.CommonConstant.MAX_BATCH_SIZE;
 
+/**
+ * @author Timmy
+ *
+ * 消費者處理
+ */
 @Slf4j
 @Component
 public class MessageConsumer {
