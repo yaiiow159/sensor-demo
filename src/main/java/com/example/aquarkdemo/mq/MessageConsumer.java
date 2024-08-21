@@ -60,7 +60,6 @@ public class MessageConsumer {
         this.threadPoolExecutor = threadPoolExecutor;
     }
 
-    @Transactional
     @KafkaListener(topics = "sensor-data-topic", containerFactory = "kafkaListenerContainerFactory",
             groupId = "sensor-data-consumer-group", topicPartitions = @TopicPartition(topic = "sensor-data-topic", partitions = { "0", "1", "2" }))
     @RetryableTopic(dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR, timeout = "30000",
@@ -92,7 +91,6 @@ public class MessageConsumer {
     }
 
     // 重試topic
-    @Transactional
     @KafkaListener(topics = "sensor-data-topic-retry", containerFactory = "kafkaListenerContainerFactory", groupId = "sensor-data-consumer-group-retry")
     public void handleRetrySensorData(ConsumerRecord<String, String> record,Acknowledgment ack) {
         log.debug("收到 sensor data: {}, 主題: {}, 分區: {}, 當前時間: {}",
