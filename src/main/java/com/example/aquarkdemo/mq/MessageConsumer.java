@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -63,7 +64,7 @@ public class MessageConsumer {
     @KafkaListener(topics = "sensor-data-topic", containerFactory = "kafkaListenerContainerFactory",
             groupId = "sensor-data-consumer-group", topicPartitions = @TopicPartition(topic = "sensor-data-topic", partitions = { "0", "1", "2" }))
     @RetryableTopic(dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR, timeout = "30000",
-            include = {ThresHoldException.class, JsonProcessingException.class, NoResultException.class, TimeoutException.class, RuntimeException.class})
+            include = {JsonProcessingException.class, NoResultException.class, TimeoutException.class, RuntimeException.class})
     public void handleSensorData(ConsumerRecord<String, String> record, Acknowledgment ack) {
         log.debug("收到 sensor data: {}, 主題: {}, 分區: {}, 當前時間: {}",
                 record.value(), record.topic(), record.partition(), LocalDateTime.now(ZoneId.of("Asia/Taipei")));
@@ -71,22 +72,17 @@ public class MessageConsumer {
         try {
             List<SensorData> sensorDataList = JsonUtil.deserialize(record.value(), new TypeReference<List<SensorData>>() {});
 
-            if (sensorDataList.size() > MAX_BATCH_SIZE) {
+            if (sensorDataList != null && sensorDataList.size() > MAX_BATCH_SIZE) {
                 handleLargeBatch(sensorDataList);
-            } else {
-                saveSensorData(sensorDataList);
             }
             // 手動確認ack message是否已正確執行完成 完成offset commit
             ack.acknowledge();
         } catch (JsonProcessingException e) {
             log.error("反序列化時發生異常: {}", e.getMessage());
             throw new RuntimeException("反序列化時發生異常", e);
-        } catch (ThresHoldException e) {
-            log.error("數據操作時發生異常: {}", e.getMessage());
-            throw new RuntimeException("闊值警告:" + e.getMessage());
-        }  catch (Exception e) {
-            log.error("數據操作時發生異常: {}", e.getMessage());
-            throw new RuntimeException("數據操作時發生異常", e);
+        } catch (RuntimeException e) {
+            log.error("發生異常 原因: {}", e.getMessage());
+            throw new RuntimeException("發生異常", e);
         }
     }
 
@@ -97,22 +93,17 @@ public class MessageConsumer {
                 record.value(), record.topic(), record.partition(), LocalDateTime.now(ZoneId.of("Asia/Taipei")));
         try {
             List<SensorData> sensorDataList = JsonUtil.deserialize(record.value(), new TypeReference<List<SensorData>>() {});
-            if (sensorDataList.size() > MAX_BATCH_SIZE) {
+            if (sensorDataList != null && sensorDataList.size() > MAX_BATCH_SIZE) {
                 handleLargeBatch(sensorDataList);
-            } else {
-                saveSensorData(sensorDataList);
             }
             // 手動確認ack message是否已正確執行完成
             ack.acknowledge();
         } catch (JsonProcessingException e) {
             log.error("反序列化時發生異常: {}", e.getMessage());
             throw new RuntimeException("反序列化時發生異常", e);
-        } catch (ThresHoldException e) {
-            log.error("數據操作時發生異常: {}", e.getMessage());
-            throw new RuntimeException("闊值警告:" + e.getMessage());
-        }  catch (Exception e) {
-            log.error("數據操作時發生異常: {}", e.getMessage());
-            throw new RuntimeException("數據操作時發生異常", e);
+        } catch (RuntimeException e) {
+            log.error("發生異常 原因: {}", e.getMessage());
+            throw new RuntimeException("發生異常", e);
         }
     }
 
@@ -133,7 +124,7 @@ public class MessageConsumer {
      * 批次插入(多執行緒)
      * @param sensorDataList 感應器集合
      */
-    private void handleLargeBatch(List<SensorData> sensorDataList) throws ThresHoldException {
+    private void handleLargeBatch(List<SensorData> sensorDataList) throws RuntimeException {
         List<List<SensorData>> partitions = partitionList(sensorDataList, BATCH_SIZE);
 
         List<CompletableFuture<Void>> futures = partitions.stream()
@@ -145,7 +136,10 @@ public class MessageConsumer {
                         log.error("批次插入過程發生異常: {}", e.getMessage());
                         throw new RuntimeException("批次插入失敗", e);
                     }
-                }, threadPoolExecutor))
+                }, threadPoolExecutor).exceptionally(throwable -> {
+                    log.error("批次插入過程發生異常: {}", throwable.getMessage());
+                    return null;
+                })).filter(Objects::nonNull)
                 .toList();
 
         try {
@@ -153,7 +147,7 @@ public class MessageConsumer {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         } catch (Exception e) {
             log.error("處理批次插入過程中發生異常: {}", e.getMessage());
-            throw new ThresHoldException("批次插入處理失敗", e);
+            throw new RuntimeException("批次插入處理失敗", e);
         }
     }
 
@@ -161,7 +155,7 @@ public class MessageConsumer {
      * 批次插入
      * @param sensorDataList 感應器集合
      */
-    private void saveSensorData(List<SensorData> sensorDataList) throws ThresHoldException {
+    private void saveSensorData(List<SensorData> sensorDataList) throws RuntimeException {
         try {
             validateThreshold(sensorDataList);
             List<SensorData> dbRecords = sensorDataRepository.saveAll(sensorDataList);
