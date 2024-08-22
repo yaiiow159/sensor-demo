@@ -120,6 +120,4 @@ public class SensorController {
         return sensorDataService.queryPeakAnalysis(date);
     }
 
-
-
 }

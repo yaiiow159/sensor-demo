@@ -190,7 +190,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 
     @Override
     @CountTime
-    @Transactional(readOnly = true, rollbackFor = CaculateException.class)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public void calculateHourlySums(LocalDateTime startTime, LocalDateTime endTime) {
         // 確保時區正確
         startTime = startTime.atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
@@ -255,7 +255,7 @@ public class SensorDataServiceImpl implements SensorDataService {
             return list;
         }
 
-        LocalDateTime start =LocalDate.parse(startTime).atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
+        LocalDateTime start = LocalDate.parse(startTime).atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
         LocalDateTime end = LocalDate.parse(endTime).atStartOfDay().atZone(ZoneId.of("Asia/Taipei")).toLocalDateTime();
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -298,7 +298,7 @@ public class SensorDataServiceImpl implements SensorDataService {
         }
 
         List<Selection<?>> selections = new ArrayList<>();
-        addFieldSelections(field,cb,root,selections);
+        addFieldSelections(field, cb, root, selections);
 
         query.multiselect(selections);
         query.where(predicates.toArray(new Predicate[0]));
@@ -337,8 +337,10 @@ public class SensorDataServiceImpl implements SensorDataService {
             // 從 Redis 緩存中取得資料
             DailySumDTO dailySumDTO = getFromCache(REDIS_DAILY_SUM_KEY + dateSuffix, DailySumDTO.class);
             DailyAverageDTO dailyAverageDTO = getFromCache(REDIS_DAILY_AVERAGE_KEY + dateSuffix, DailyAverageDTO.class);
-            List<HourlySumDTO> hourlySumDTO = getListFromCache(REDIS_HOURLY_SUM_KEY + dateSuffix, new TypeReference<HourlySumDTO>() {});
-            List<HourlyAverageDTO> hourlyAverageDTO = getListFromCache(REDIS_HOURLY_AVERAGE_KEY + dateSuffix, new TypeReference<HourlyAverageDTO>() {});
+            List<HourlySumDTO> hourlySumDTO = getListFromCache(REDIS_HOURLY_SUM_KEY + dateSuffix, new TypeReference<HourlySumDTO>() {
+            });
+            List<HourlyAverageDTO> hourlyAverageDTO = getListFromCache(REDIS_HOURLY_AVERAGE_KEY + dateSuffix, new TypeReference<HourlyAverageDTO>() {
+            });
 
             PeakOffPeakSumDTO peakSumDTO = getFromCache(REDIS_PEAK_SUM_KEY + dateSuffix, PeakOffPeakSumDTO.class);
             PeakOffPeakAverageDTO peakAverageDTO = getFromCache(REDIS_PEAK_AVERAGE_KEY + dateSuffix, PeakOffPeakAverageDTO.class);
@@ -363,7 +365,7 @@ public class SensorDataServiceImpl implements SensorDataService {
                 cacheDataToList(REDIS_HOURLY_AVERAGE_KEY + dateSuffix, hourlyAverageDTO);
             }
 
-            if(peakSumDTO == null && offPeakSumDTO == null) {
+            if (peakSumDTO == null && offPeakSumDTO == null) {
 
                 if (PeakOffPeakTimeChecker.isCalculatePeakFullDay(startTime)) {
                     peakSumDTO = sensorDataRepository.findPeekSumByTimeRange(startTime, endTime);
