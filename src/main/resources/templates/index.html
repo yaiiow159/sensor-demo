@@ -94,11 +94,6 @@
         const threadsData = await threadsResponse.json();
         const requestsData = await requestsResponse.json();
 
-        console.log('cpuData', cpuData);
-        console.log('memoryData', memoryData);
-        console.log('threadsData', threadsData);
-        console.log('requestsData', requestsData);
-
         updateCPUChart(cpuData);
         updateMemoryChart(memoryData);
         updateThreadsChart(threadsData);
@@ -185,72 +180,17 @@
     }
 
     function recreateChart() {
+        // 先清除 canvas 元素
         const cpuCtx = document.getElementById('cpuChart').getContext('2d');
-        new Chart(cpuCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['CPU使用率', '空閒狀態'],
-                datasets: [{
-                    data: [0, 100],
-                    backgroundColor: ['#ff6384', '#36a2eb'],
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-            }
-        });
-
+        cpuCtx.clearRect(0, 0, cpuCtx.canvas.width, cpuCtx.canvas.height);
         const memoryCtx = document.getElementById('memoryChart').getContext('2d');
-        new Chart(memoryCtx, {
-            type: 'bar',
-            data: {
-                labels: ['JVM總記憶體(MB)'],
-                datasets: [{
-                    data: [0],
-                    backgroundColor: ['#ffce56'],
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
+        memoryCtx.clearRect(0, 0, memoryCtx.canvas.width, memoryCtx.canvas.height);
         const threadsCtx = document.getElementById('threadsChart').getContext('2d');
-        new Chart(threadsCtx, {
-            type: 'pie',  // 改成 'pie' 來顯示餅圖
-            data: {
-                labels: ['活躍執行緒數量'],
-                datasets: [{
-                    data: [0, 100],
-                    backgroundColor: ['#36a2eb', '#ff6384'],
-                    hoverBackgroundColor: ['#36a2eb', '#ff6384']
-                }]
-            },
-            options: {
-                responsive: true,
-            }
-        });
-
+        threadsCtx.clearRect(0, 0, threadsCtx.canvas.width, threadsCtx.canvas.height);
         const requestsCtx = document.getElementById('requestsChart').getContext('2d');
-        new Chart(requestsCtx, {
-            type: 'bar',
-            data: {
-                labels: ['每秒請求次數'],
-                datasets: [{
-                    data: [0],
-                    backgroundColor: ['#ff6384'],
-                }]
-            },
-            options: {
-                responsive: true,
-            }
-        });
+        requestsCtx.clearRect(0, 0, requestsCtx.canvas.width, requestsCtx.canvas.height);
+
+        getMetricsPoint();
     }
 
     setInterval(function () {recreateChart(); getMetricsPoint();}, 5000);

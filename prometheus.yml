@@ -6,12 +6,6 @@ scrape_configs:
       - targets: ['localhost:8080']
     metrics_path: /actuator/prometheus
 
-  - job_name: 'kafka'
-    scrape_interval: 5s
-    scrape_timeout: 10s
-    static_configs:
-      - targets: ['localhost:9404']
-
   - job_name: 'redis'
     scrape_interval: 5s
     scrape_timeout: 10s
@@ -25,6 +19,3 @@ alerting:
 
 rule_files:
   - 'alert.rules.yml'
-
-
-

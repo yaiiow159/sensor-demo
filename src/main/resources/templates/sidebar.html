@@ -7,16 +7,21 @@
         <hr class="border-light">
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
-                <a class="nav-link text-white" th:href="@{/api/v1/sensor/dashboard}">
-                    <i class="fas fa-chart-pie me-2"></i> 圖表總攬
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link text-white" th:href="@{/}">
                     <i class="fas fa-chart-pie me-2"></i> 系統監控
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" th:href="@{/api/v1/metric/cache}">
+                    <i class="fas fa-chart-pie me-2"></i> 緩存監控
+                </a>
+            </li>
             <hr class="border-light">
+            <li class="nav-item">
+                <a class="nav-link text-white" th:href="@{/api/v1/sensor/dashboard}">
+                    <i class="fas fa-chart-pie me-2"></i> 圖表總攬
+                </a>
+            </li>
             <li class="nav-item">
                 <a th:href="@{/api/v1/sensor/daily-analysis}" class="nav-link text-white">
                     <i class="fas fa-calendar-day me-2"></i> 每日分析
