@@ -51,23 +51,23 @@ public class HttpRequestServiceImpl implements HttpRequestService {
                         log.debug("Api回傳結果內容: {}", response);
                         RawData rawData = JsonUtil.deserialize(response, new TypeReference<RawData>(){});
                         log.debug("實際得到數據: {}", rawData);
-                        return CollectionUtils.isEmpty(rawData.getRaw()) ? Collections.<SensorData>emptyList() : rawData.getRaw();
+                        return CollectionUtils.isEmpty(rawData.getRaw()) ? null : rawData.getRaw();
                     } catch (ConnectionRequestTimeoutException e) {
                         log.error("連線 {} api超時", api);
-                        return Collections.<SensorData>emptyList();
+                        return null;
                     } catch (Exception e) {
                         log.error("呼叫 {} api時出現異常", api, e);
-                        return Collections.<SensorData>emptyList();
+                        return null;
                     }
                 }, threadPoolExecutor).exceptionally(ex -> {
                     log.error("異步處理 {} api時發生異常", api, ex);
-                    return Collections.<SensorData>emptyList();
+                    return null;
                 }))
                 .toList();
 
         try {
             // 等待所有處理完畢
-            CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).get(10, TimeUnit.SECONDS);
+            CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).get(5, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException e) {
             log.error("執行異步處理時發生異常 {}", e.getMessage());
             return ApiResult.error(Collections.EMPTY_MAP);
