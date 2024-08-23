@@ -76,7 +76,7 @@ public interface SensorDataRepository extends JpaRepository<SensorData, Long> {
             "WHERE sd.obsTime >= :startTime AND sd.obsTime < :endTime " +
             "GROUP BY HOUR(sd.obsTime)")
     List<HourlyAverageDTO> findHourlyAverages(@Param("startTime") LocalDateTime startTime,
-                                              @Param("endTime") LocalDateTime endTime);
+                                      @Param("endTime") LocalDateTime endTime);
 
 
     /**
