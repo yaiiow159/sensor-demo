@@ -15,8 +15,8 @@
     </style>
 </head>
 <body>
-<div th:insert="header :: header"></div>
 <div class="container-fluid">
+    <div th:insert="header :: header"></div>
     <div class="row">
         <div class="col-3 w-40">
             <div th:insert="sidebar :: sidebar"></div>
@@ -193,7 +193,7 @@
         getMetricsPoint();
     }
 
-    setInterval(function () {recreateChart(); getMetricsPoint();}, 5000);
+    setInterval(function () {recreateChart(); getMetricsPoint();}, 60000);
 </script>
 </body>
 </html>

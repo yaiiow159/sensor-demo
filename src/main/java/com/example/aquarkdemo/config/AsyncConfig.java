@@ -11,9 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class AsyncConfig {
-
     private static final int CORE_CPU_SIZE = Runtime.getRuntime().availableProcessors();
-
     private static final int MAX_POOL_SIZE = CORE_CPU_SIZE * 2;
     @Bean("httpConnectionThreadPoolExecutor")
     public ThreadPoolExecutor threadPoolExecutor() {
