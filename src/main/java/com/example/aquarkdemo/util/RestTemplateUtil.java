@@ -3,6 +3,7 @@ package com.example.aquarkdemo.util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;

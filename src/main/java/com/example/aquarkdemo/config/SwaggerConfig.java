@@ -53,6 +53,15 @@ public class SwaggerConfig {
     }
 
     @Bean
+    public GroupedOpenApi metricsAPI() {
+        return GroupedOpenApi.builder()
+                .group("緩存監控相關 API")
+                .pathsToMatch("/api/v1/metric/**")
+                .packagesToScan("com.example.aquarkdemo.controller")
+                .build();
+    }
+
+    @Bean
     public OpenAPI customizeOpenAPI() {
         return new OpenAPI()
                 .info(new Info()

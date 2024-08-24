@@ -42,6 +42,4 @@ public class CommonConstant {
     public static final String SENSOR_FIELD_NAME_SPEED = "speed";
     public static final String SENSOR_ALL_FIELD = "All";
 
-    // 指標 URL
-    public static final String REDIS_METRIC_URL = "http://localhost:9121/metrics";
 }
