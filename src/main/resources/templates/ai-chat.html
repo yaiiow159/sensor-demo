@@ -49,16 +49,20 @@
     </div>
     <div class="col-8 mt-5">
       <div id="chatbox" class="mb-3"></div>
-      <div class="input-group">
+      <div class="input-group mb-2">
         <input type="text" id="message" class="form-control" required placeholder="輸入訊息..."> &nbsp;
         <button id="sendBtn" class="btn btn-primary">送出</button>
       </div>
+      <div>
+        <button id="addMessageBtn" class="btn btn-secondary">新增對話</button>
+      </div>
     </div>
-</div>
+  </div>
 </div>
 
 <script>
   $(document).ready(function () {
+    // 送出訊息按鈕點擊事件
     $('#sendBtn').click(function () {
       const message = $('#message').val();
       if (message.trim() !== '') {
@@ -74,18 +78,22 @@
             appendMessage('ai-response', response);
           },
           error: function (error) {
-            appendMessage('ai-response',  error.responseText);
+            appendMessage('ai-response', error.responseText);
           }
         });
       }
     });
 
+    $('#addMessageBtn').click(function () {
+      $('#chatbox').html('');
+    });
+
+    // 新增訊息到對話框的方法
     function appendMessage(className, message) {
       $('#chatbox').append('<div class="' + className + '">' + message + '</div>');
       $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
     }
   });
-
 </script>
 </body>
 </html>
