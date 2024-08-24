@@ -104,6 +104,7 @@ docker-compose stop
    ![每小時分析](https://github.com/user-attachments/assets/178b5d04-b9e9-4edd-85d2-bc1f486b6291)
    ![離峰時段分析](https://github.com/user-attachments/assets/133c23c8-98be-41b3-a33c-71591cc07b97)
    ![尖峰時段分析](https://github.com/user-attachments/assets/0515db11-c09d-4f92-92b8-b04d2792c2d9)
+   ![緩存監控](https://github.com/user-attachments/assets/dc9f1a1a-4733-4265-b71a-4f73e65bb924)
 
    > **注意** 該功能尚在開發中 點及提交會跳出警示顯示
    ![AI功能測試](https://github.com/user-attachments/assets/a8244efa-212f-4465-a115-23b9fd6e4771)
